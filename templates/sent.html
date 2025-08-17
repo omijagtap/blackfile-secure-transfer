@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>BlackFile – Sent</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="card">
+    <h1>✅ Link Sent</h1>
+    <p class="subtitle">We emailed the recipient with the download link + OTP.</p>
+
+    <label>Download Link</label>
+    <input type="text" value="{{ link }}" readonly>
+
+    <label>Recipient</label>
+    <input type="text" value="{{ email }}" readonly>
+
+    <label>Secret Key (share via another channel)</label>
+    <input type="text" value="{{ secret_key }}" readonly>
+
+    <label>SHA-256 of original file</label>
+    <input type="text" value="{{ sha256_hex }}" readonly>
+
+    <p class="hint">This link expires in {{ expiry_minutes }} minutes or after 1 download, whichever comes first.</p>
+
+    <a href="{{ url_for('index') }}"><button>⬅️ Back to Home</button></a>
+  </div>
+
+  <!-- Overlay -->
+  <div class="overlay hidden" id="overlay">
+    <div class="overlay-card">
+      <h2>🔒 Secure Processing</h2>
+      <div class="steps" id="stepsContainer"></div>
+      <div class="loader"></div>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

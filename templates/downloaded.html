@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>BlackFile — Download</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="card">
+    <h1>Preparing your download…</h1>
+    <p class="subtitle">Your file will start downloading automatically. For security, it will be erased immediately afterward.</p>
+    <div class="loader"></div>
+    <p class="hint">You’ll be redirected to a confirmation page in a few seconds.</p>
+  </div>
+
+  <!-- Fire the download in a hidden iframe so this page can redirect -->
+  <iframe src="{{ url_for('download', token=token) }}" style="display:none;" sandbox></iframe>
+
+  <script>
+    setTimeout(function(){
+      window.location = "{{ url_for('final') }}";
+    }, 5000);
+  </script>
+</body>
+</html>

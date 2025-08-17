@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>BlackFile – Upload</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="card">
+    <h1>⬆️ Upload Securely</h1>
+    <p class="subtitle">Your file will be encrypted with AES-256 and shared securely.</p>
+
+    <form id="uploadForm" method="POST" action="{{ url_for('upload') }}" enctype="multipart/form-data">
+      <label for="email">Recipient Email</label>
+      <input type="email" id="email" name="email" required>
+
+      <label for="expiry">Expiry (minutes)</label>
+      <select id="expiry" name="expiry">
+        {% for m in allowed_expiry %}
+        <option value="{{ m }}">{{ m }}</option>
+        {% endfor %}
+      </select>
+
+      <label>File</label>
+      <div class="drop" id="drop">
+        <span id="dropText">📂 Drag & Drop your file here or <b>Click</b> to choose</span>
+        <input type="file" id="file" name="file" required>
+      </div>
+
+      <button type="submit" id="submitBtn">🔒 Upload Securely</button>
+    </form>
+  </div>
+
+  <!-- Overlay -->
+  <div class="overlay hidden" id="overlay">
+    <div class="overlay-card">
+      <h2>🔒 Secure Processing</h2>
+      <div class="steps" id="stepsContainer"></div>
+      <div class="loader"></div>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

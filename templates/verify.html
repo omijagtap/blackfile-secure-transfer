@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>BlackFile – Verify & Download</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="card">
+    <h1>🔒 Verify to Download</h1>
+    <p class="subtitle">Enter the OTP (from email) and the Secret Key (from sender).</p>
+
+    {% if expired %}
+      <div class="flash"><div>⏰ This link has expired and the file was deleted.</div></div>
+      <a href="{{ url_for('index') }}"><button>⬅️ Back to Home</button></a>
+
+    {% elif already_erased %}
+      <div class="flash"><div>🗑️ This link has already been used and securely erased.</div></div>
+      <a href="{{ url_for('index') }}"><button>⬅️ Back to Home</button></a>
+
+    {% elif locked %}
+      <div class="flash"><div>🚫 Too many wrong attempts. Try again in ~{{ minutes_left }} minutes.</div></div>
+
+    {% elif success %}
+      <div class="flash success">
+        <div>✅ File verified and download started!</div>
+        <div id="redirectMsg">Redirecting to home in 10s...</div>
+      </div>
+      <a href="{{ url_for('index') }}"><button id="backBtn">⬅️ Back to Home</button></a>
+
+      <script>
+        let seconds = 10;
+        const msg = document.getElementById("redirectMsg");
+        const btn = document.getElementById("backBtn");
+        const timer = setInterval(() => {
+          seconds--;
+          msg.textContent = "Redirecting to home in " + seconds + "s...";
+          if (seconds <= 0) {
+            clearInterval(timer);
+            window.location.href = "{{ url_for('index') }}";
+          }
+        }, 1000);
+      </script>
+
+    {% else %}
+      {% if wrong_otp %}
+        <div class="flash"><div>❌ Incorrect OTP. Please try again.</div></div>
+      {% endif %}
+      {% if wrong_secret %}
+        <div class="flash"><div>❌ Secret Key does not match this link.</div></div>
+      {% endif %}
+      {% if error %}
+        <div class="flash"><div>⚠️ {{ error }}</div></div>
+      {% endif %}
+
+      <form method="POST">
+        <label for="otp">One-Time Passcode (OTP)</label>
+        <input type="text" id="otp" name="otp" inputmode="numeric" maxlength="6" placeholder="6-digit code" required>
+
+        <label for="secret_key">Secret Key</label>
+        <input type="text" id="secret_key" name="secret_key" placeholder="Paste the secret key" required>
+
+        <button type="submit">⬇️ Verify & Download</button>
+      </form>
+    {% endif %}
+  </div>
+</body>
+</html>
