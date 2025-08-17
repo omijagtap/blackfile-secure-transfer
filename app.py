@@ -11,6 +11,12 @@ import smtplib
 from email.mime.text import MIMEText
 from io import BytesIO
 
+import os
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+
+
 from flask import (
     Flask, render_template, request, redirect,
     url_for, send_file, abort, flash, session, make_response
