@@ -746,14 +746,16 @@ p {
   display: none;
   flex-direction: column;
   gap: 4px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
   cursor: pointer;
   padding: 12px;
   z-index: 1001;
   position: relative;
   transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .mobile-menu-btn:hover {
@@ -767,9 +769,9 @@ p {
   height: 4px;
   background: #ffffff;
   transition: all 0.3s ease;
-  border-radius: 3px;
+  border-radius: 6px;
   display: block;
-  box-shadow: 0 0 3px rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
 }
 
 .mobile-menu-btn.active span:nth-child(1) {
@@ -802,13 +804,14 @@ p {
     left: 0;
     right: 0;
     width: 100%;
-    background: rgba(10, 10, 15, 0.95);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: rgba(10, 10, 15, 0.85);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
     padding: 20px;
     z-index: 999;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 0 0 20px 20px;
     
     /* Hide by default */
     display: none;
@@ -829,6 +832,14 @@ p {
     font-size: 18px;
     text-align: center;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    margin: 5px 0;
+    transition: all 0.3s ease;
+  }
+  
+  .nav-menu .nav-link:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateX(5px);
   }
   
   .nav-menu .nav-link:last-child {
