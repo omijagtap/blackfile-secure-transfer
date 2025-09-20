@@ -1,0 +1,514 @@
+{% extends "modern-base.html" %}
+
+{% block title %}BlackFile - Ultra Secure File Transfer Platform{% endblock %}
+
+{% block content %}
+<!-- Hero Split Section -->
+<section class="hero-section">
+    <div class="hero-split">
+        <div class="hero-content">
+            <div class="hero-title" style="line-height: 1.2; margin-bottom: 1.5rem;">
+                Secure File Transfer
+                <br>
+                <span style="background: var(--accent); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                    Made Simple
+                </span>
+            </div>
+            <p class="hero-subtitle" style="font-size: 1.1rem; line-height: 1.5; margin-bottom: 2rem; max-width: 90%;">
+                Military-grade encryption, zero-knowledge architecture, and automatic deletion.
+                <br><br>
+                Send files with confidence knowing they're protected by AES-256 encryption and two-factor authentication.
+            </p>
+            <div style="display: flex; gap: 1rem; margin-top: 2rem; flex-wrap: wrap;">
+                <div class="glass" style="padding: 1rem; text-align: center; flex: 1; min-width: 120px;">
+                    <i class="fas fa-shield-alt" style="color: var(--success); font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
+                    <div style="font-size: 0.9rem; font-weight: 600;">AES-256</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">Encryption</div>
+                </div>
+                <div class="glass" style="padding: 1rem; text-align: center; flex: 1; min-width: 120px;">
+                    <i class="fas fa-key" style="color: var(--info); font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
+                    <div style="font-size: 0.9rem; font-weight: 600;">2-Factor</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">Authentication</div>
+                </div>
+                <div class="glass" style="padding: 1rem; text-align: center; flex: 1; min-width: 120px;">
+                    <i class="fas fa-trash-alt" style="color: var(--warning); font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
+                    <div style="font-size: 0.9rem; font-weight: 600;">Auto</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">Deletion</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="hero-upload">
+            <div class="glass-card super-glass">
+        <div class="text-center mb-3">
+            <i class="fas fa-cloud-upload-alt" style="font-size: 2.5rem; background: var(--primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 0.8rem; display: block;"></i>
+            <h3 class="mb-2">Send Your File Securely</h3>
+            <p class="text-muted" style="font-size: 0.9rem;">Upload and create a secure, encrypted link</p>
+        </div>
+
+        <form action="{{ url_for('upload') }}" method="POST" enctype="multipart/form-data" id="uploadForm">
+            <div class="form-group" style="margin-bottom: 1rem;">
+                <label for="email" class="form-label" style="margin-bottom: 0.5rem; font-size: 0.9rem;">
+                    <i class="fas fa-envelope"></i> Recipient Email
+                </label>
+                <input 
+                    type="email" 
+                    id="email" 
+                    name="email" 
+                    class="form-input" 
+                    placeholder="Enter recipient's email"
+                    required
+                    autocomplete="email"
+                    style="padding: 0.75rem 1rem; font-size: 0.9rem;"
+                >
+                <small class="text-muted" style="font-size: 0.8rem;">Secure link will be sent here</small>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1rem;">
+                <label for="file" class="form-label" style="margin-bottom: 0.5rem; font-size: 0.9rem;">
+                    <i class="fas fa-file-alt"></i> Choose File
+                </label>
+                
+                <!-- SINGLE UPLOAD AREA -->
+                <div class="upload-area" id="uploadArea" style="
+                    border: 2px dashed rgba(255, 255, 255, 0.2);
+                    padding: 2.5rem 1rem;
+                    border-radius: var(--radius-lg);
+                    text-align: center;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    background: rgba(255, 255, 255, 0.02);
+                ">
+                    
+                    <i class="fas fa-cloud-upload-alt upload-icon" style="font-size: 3rem; color: var(--accent-solid); display: block; margin-bottom: 1rem;"></i>
+                    <div class="upload-text" style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">Drop file or click to browse</div>
+                    <div class="upload-hint" style="font-size: 0.9rem; color: var(--text-muted);">Max 10MB</div>
+                    
+                    <!-- This will show the filename when uploaded -->
+                    <div id="fileStatus" style="
+                        display: none;
+                        margin-top: 1.5rem;
+                        padding: 1rem;
+                        background: rgba(16, 185, 129, 0.1);
+                        border: 1px solid rgba(16, 185, 129, 0.3);
+                        border-radius: 12px;
+                    ">
+                        <div style="color: var(--success); font-weight: 600; font-size: 1rem;">
+                            <i class="fas fa-check-circle" style="margin-right: 0.5rem;"></i>
+                            <span id="uploadedFileName"></span>
+                        </div>
+                    </div>
+                    
+                    <input 
+                        type="file" 
+                        id="file" 
+                        name="file" 
+                        style="display: none;" 
+                        required
+                        accept="*/*"
+                    >
+                </div>
+                <!-- Remove any duplicate file info divs -->
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label for="expiry" class="form-label" style="margin-bottom: 0.5rem; font-size: 0.9rem;">
+                    <i class="fas fa-clock"></i> Link Expiry
+                </label>
+                <select id="expiry" name="expiry" class="form-input form-select" style="padding: 0.75rem 1rem; font-size: 0.9rem;">
+                    {% for minutes in allowed_expiry %}
+                        <option value="{{ minutes }}" {% if minutes == 10 %}selected{% endif %}>
+                            {% if minutes == 5 %}5 min (Ultra Secure)
+                            {% elif minutes == 10 %}10 min (Recommended)
+                            {% elif minutes == 60 %}1 hour (Extended)
+                            {% else %}{{ minutes }} minutes
+                            {% endif %}
+                        </option>
+                    {% endfor %}
+                </select>
+                <small class="text-muted" style="font-size: 0.8rem;">Auto-expires for security</small>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-full" id="uploadBtn" style="padding: 0.9rem 1.5rem; font-size: 1rem;">
+                <i class="fas fa-shield-alt"></i>
+                Create Secure Link
+            </button>
+        </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section id="features" class="mb-4">
+    <div class="text-center mb-4">
+        <h2>Why Choose BlackFile?</h2>
+        <p class="text-muted">Built with security and privacy as our top priorities</p>
+    </div>
+
+    <div class="features-grid">
+        <div class="feature-card">
+            <i class="fas fa-shield-alt feature-icon"></i>
+            <h3>AES-256 Encryption</h3>
+            <p>Military-grade encryption ensures your files are protected with the same security used by governments and financial institutions worldwide.</p>
+        </div>
+
+        <div class="feature-card">
+            <i class="fas fa-key feature-icon"></i>
+            <h3>Two-Factor Authentication</h3>
+            <p>Double-layer security with OTP verification and secret key authentication. Even if someone intercepts the email, they still can't access your file.</p>
+        </div>
+
+        <div class="feature-card">
+            <i class="fas fa-trash-alt feature-icon"></i>
+            <h3>Auto-Deletion</h3>
+            <p>Files are automatically and permanently deleted after download or expiration. No traces left on our servers for maximum privacy.</p>
+        </div>
+
+        <div class="feature-card">
+            <i class="fas fa-eye-slash feature-icon"></i>
+            <h3>Zero Knowledge</h3>
+            <p>We never have access to your files. Everything is encrypted client-side before upload, ensuring complete privacy and confidentiality.</p>
+        </div>
+
+        <div class="feature-card">
+            <i class="fas fa-clock feature-icon"></i>
+            <h3>Time-Limited Links</h3>
+            <p>Set custom expiration times from 5 minutes to 1 hour. Links automatically become invalid after the set time for enhanced security.</p>
+        </div>
+
+        <div class="feature-card">
+            <i class="fas fa-globe feature-icon"></i>
+            <h3>Global Access</h3>
+            <p>Send files anywhere in the world instantly. Our global CDN ensures fast download speeds regardless of recipient location.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Security Section -->
+<section id="security" class="mb-4">
+    <div class="glass-card" style="max-width: 800px; margin: 0 auto;">
+        <div class="text-center mb-4">
+            <h2>Enterprise-Grade Security</h2>
+            <p class="text-muted">Your files are protected by multiple layers of security</p>
+        </div>
+
+        <div class="d-flex justify-center gap-4 mb-4" style="flex-wrap: wrap;">
+            <div class="text-center" style="flex: 1; min-width: 200px;">
+                <i class="fas fa-lock" style="font-size: 2rem; color: var(--success); margin-bottom: 0.5rem;"></i>
+                <h4>End-to-End Encryption</h4>
+                <p class="text-sm text-muted">Files encrypted before leaving your device</p>
+            </div>
+            <div class="text-center" style="flex: 1; min-width: 200px;">
+                <i class="fas fa-server" style="font-size: 2rem; color: var(--info); margin-bottom: 0.5rem;"></i>
+                <h4>Secure Infrastructure</h4>
+                <p class="text-sm text-muted">Enterprise-grade servers with 99.9% uptime</p>
+            </div>
+            <div class="text-center" style="flex: 1; min-width: 200px;">
+                <i class="fas fa-user-shield" style="font-size: 2rem; color: var(--warning); margin-bottom: 0.5rem;"></i>
+                <h4>Privacy First</h4>
+                <p class="text-sm text-muted">No tracking, no analytics, no data retention</p>
+            </div>
+        </div>
+
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            <div>
+                <strong>How it works:</strong> Your file is encrypted with AES-256 before upload. The encryption key is sent separately via email with OTP protection. We never have access to your unencrypted files.
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- About Section -->
+<section id="about" class="mb-4">
+    <div class="text-center mb-4">
+        <h2>Built for Modern Security Needs</h2>
+        <p class="text-muted">BlackFile combines simplicity with enterprise-grade security</p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; max-width: 1000px; margin: 0 auto;">
+        <div class="glass" style="padding: 2rem;">
+            <h3><i class="fas fa-users text-accent"></i> For Teams</h3>
+            <p>Share sensitive documents, contracts, and confidential files with team members securely. Perfect for remote work and collaboration.</p>
+        </div>
+
+        <div class="glass" style="padding: 2rem;">
+            <h3><i class="fas fa-building text-accent"></i> For Businesses</h3>
+            <p>Comply with data protection regulations while maintaining productivity. Secure file sharing without complex IT infrastructure.</p>
+        </div>
+
+        <div class="glass" style="padding: 2rem;">
+            <h3><i class="fas fa-user text-accent"></i> For Individuals</h3>
+            <p>Send personal documents, photos, or any files with complete peace of mind. Your privacy is our top priority.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="mb-4">
+    <div class="glass-card stats-section" style="max-width: 800px; margin: 0 auto;" id="statsSection">
+        <div class="text-center">
+            <h3 style="margin-bottom: 2rem;">Trusted by Users Worldwide</h3>
+            <div class="d-flex justify-center gap-4 mt-3" style="flex-wrap: wrap;">
+                <div class="text-center" style="flex: 1; min-width: 200px; padding: 1.5rem;">
+                    <div class="counter" data-target="10247">0</div>
+                    <div style="font-size: 1rem; color: var(--text-secondary); font-weight: 500; margin-top: 0.5rem;">Files Transferred</div>
+                </div>
+                <div class="text-center" style="flex: 1; min-width: 200px; padding: 1.5rem;">
+                    <div class="counter accent" data-target="99.9" data-decimal="1">0</div>
+                    <div style="font-size: 1rem; color: var(--text-secondary); font-weight: 500; margin-top: 0.5rem;">% Uptime</div>
+                </div>
+                <div class="text-center" style="flex: 1; min-width: 200px; padding: 1.5rem;">
+                    <div class="counter secondary" data-target="0">0</div>
+                    <div style="font-size: 1rem; color: var(--text-secondary); font-weight: 500; margin-top: 0.5rem;">Data Breaches</div>
+                </div>
+            </div>
+            <div class="mt-3" style="opacity: 0.7;">
+                <p class="text-sm text-muted">
+                    <i class="fas fa-shield-alt text-success"></i>
+                    Zero-knowledge architecture means we never see your files
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Hero content spacing */
+.hero-content {
+    position: relative;
+    top: -118px;
+    left: 50px;
+}
+
+/* Simple upload area styles */
+.upload-area:hover {
+    border-color: var(--accent-solid) !important;
+    background: rgba(99, 179, 237, 0.05) !important;
+}
+
+/* Animation for scroll effects */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// CLEAN FILE UPLOAD - SIMPLE AND CLEAR
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('file');
+    const uploadArea = document.getElementById('uploadArea');
+    const fileStatus = document.getElementById('fileStatus');
+    const uploadedFileName = document.getElementById('uploadedFileName');
+    const uploadForm = document.getElementById('uploadForm');
+    const uploadBtn = document.getElementById('uploadBtn');
+    
+    // Format file size helper
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+    
+    // FILE CHANGE LISTENER - CLEAN AND SIMPLE
+    fileInput.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            const file = this.files[0];
+            
+            // Check file size
+            const maxSize = 10 * 1024 * 1024; // 10MB
+            if (file.size > maxSize) {
+                alert('File size exceeds 10MB limit!');
+                this.value = '';
+                resetUploadArea();
+                return;
+            }
+            
+            // Show file selected
+            showSelectedFile(file);
+        }
+    });
+    
+    // Show selected file in clean way
+    function showSelectedFile(file) {
+        // Show the file status section
+        fileStatus.style.display = 'block';
+        uploadedFileName.innerHTML = 'File selected: <strong>' + file.name + '</strong> (' + formatFileSize(file.size) + ')';
+        
+        // Change upload area style to success
+        uploadArea.style.borderColor = 'var(--success)';
+        uploadArea.style.borderStyle = 'solid';
+        uploadArea.style.background = 'rgba(16, 185, 129, 0.05)';
+        
+        // Update upload area text
+        const uploadText = uploadArea.querySelector('p');
+        if (uploadText) {
+            uploadText.innerHTML = '<i class="fas fa-check-circle" style="color: var(--success); margin-right: 0.5rem;"></i>File ready for upload!';
+        }
+    }
+    
+    // Reset upload area to default state
+    function resetUploadArea() {
+        fileStatus.style.display = 'none';
+        uploadArea.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+        uploadArea.style.borderStyle = 'dashed';
+        uploadArea.style.background = 'rgba(255, 255, 255, 0.02)';
+        
+        // Reset upload area text
+        const uploadText = uploadArea.querySelector('p');
+        if (uploadText) {
+            uploadText.innerHTML = 'Drag and drop your file here or <span class="text-accent">click to browse</span><br><small class="text-muted">Max file size: 10MB</small>';
+        }
+    });
+    
+    // UPLOAD AREA CLICK HANDLER - SINGLE CLICK ONLY
+    uploadArea.addEventListener('click', function(e) {
+        // Prevent event bubbling
+        e.stopPropagation();
+        // Only trigger if clicked on the upload area itself, not on child elements
+        if (e.target === uploadArea || uploadArea.contains(e.target)) {
+            fileInput.click();
+        }
+    });
+
+    // DRAG AND DROP
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.style.borderColor = 'var(--accent-solid)';
+        uploadArea.style.background = 'rgba(99, 179, 237, 0.1)';
+    });
+    
+    uploadArea.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        if (!fileInput.files || fileInput.files.length === 0) {
+            uploadArea.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+            uploadArea.style.background = 'rgba(255, 255, 255, 0.02)';
+        }
+    });
+    
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        if (e.dataTransfer.files.length > 0) {
+            fileInput.files = e.dataTransfer.files;
+            const event = new Event('change', { bubbles: true });
+            fileInput.dispatchEvent(event);
+        }
+    });
+
+    // Form submission handler
+    uploadForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Check if file is selected
+        if (!fileInput.files || fileInput.files.length === 0) {
+            alert('Please select a file to upload!');
+            return;
+        }
+        
+        // Show loading
+        uploadBtn.disabled = true;
+        uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+        
+        // Submit form
+        this.submit();
+    });
+
+    // Email validation
+    document.getElementById('email').addEventListener('blur', function() {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (this.value && !emailRegex.test(this.value)) {
+            this.style.borderColor = 'var(--error)';
+        } else {
+            this.style.borderColor = '';
+        }
+    });
+
+    // Animated Counters
+    function animateCounter(element, target, duration = 2000, decimals = 0) {
+        const start = 0;
+        const increment = target / (duration / 16);
+        let current = start;
+        
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+                current = target;
+                clearInterval(timer);
+            }
+            
+            if (decimals > 0) {
+                element.textContent = current.toFixed(decimals);
+            } else {
+                element.textContent = Math.floor(current).toLocaleString();
+            }
+        }, 16);
+    }
+    
+    // Stats section observer
+    const statsObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('animate');
+                
+                // Start counter animations
+                const counters = entry.target.querySelectorAll('.counter');
+                counters.forEach((counter, index) => {
+                    const target = parseFloat(counter.dataset.target);
+                    const decimals = parseInt(counter.dataset.decimal) || 0;
+                    
+                    setTimeout(() => {
+                        animateCounter(counter, target, 2500, decimals);
+                    }, index * 200);
+                });
+                
+                // Unobserve after animation starts
+                statsObserver.unobserve(entry.target);
+            }
+        });
+    }, {
+        threshold: 0.5
+    });
+    
+    // Observe stats section
+    const statsSection = document.getElementById('statsSection');
+    if (statsSection) {
+        statsObserver.observe(statsSection);
+    }
+
+    // Add smooth animations on scroll
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.animation = 'fadeInUp 0.6s ease forwards';
+            }
+        });
+    }, observerOptions);
+
+    // Observe feature cards
+    document.querySelectorAll('.feature-card, .glass-card, .glass').forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        observer.observe(el);
+    });
+});
+</script>
+{% endblock %}

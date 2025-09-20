@@ -1,68 +1,109 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>BlackFile – Verify & Download</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-  <div class="card">
-    <h1>🔒 Verify to Download</h1>
-    <p class="subtitle">Enter the OTP (from email) and the Secret Key (from sender).</p>
+{% extends "base.html" %}
 
+{% block title %}Secure Download - BlackFile{% endblock %}
+
+{% block content %}
+<div class="card verify-card">
     {% if expired %}
-      <div class="flash"><div>⏰ This link has expired and the file was deleted.</div></div>
-      <a href="{{ url_for('index') }}"><button>⬅️ Back to Home</button></a>
-
+        <div class="status-message error">
+            <div class="status-icon">
+                <i class="fas fa-exclamation-circle"></i>
+            </div>
+            <h2>Link Expired</h2>
+            <p>This download link has expired and the file has been permanently deleted for security reasons.</p>
+            <div class="status-actions">
+                <a href="{{ url_for('index') }}" class="btn-primary"><i class="fas fa-paper-plane"></i> Send a New File</a>
+            </div>
+        </div>
+    
     {% elif already_erased %}
-      <div class="flash"><div>🗑️ This link has already been used and securely erased.</div></div>
-      <a href="{{ url_for('index') }}"><button>⬅️ Back to Home</button></a>
-
+        <div class="status-message error">
+            <div class="status-icon">
+                <i class="fas fa-trash-alt"></i>
+            </div>
+            <h2>File Already Downloaded</h2>
+            <p>This file has already been downloaded and has been permanently erased from our servers.</p>
+            <div class="status-actions">
+                <a href="{{ url_for('index') }}" class="btn-primary"><i class="fas fa-paper-plane"></i> Send a New File</a>
+            </div>
+        </div>
+    
     {% elif locked %}
-      <div class="flash"><div>🚫 Too many wrong attempts. Try again in ~{{ minutes_left }} minutes.</div></div>
-
-    {% elif success %}
-      <div class="flash success">
-        <div>✅ File verified and download started!</div>
-        <div id="redirectMsg">Redirecting to home in 10s...</div>
-      </div>
-      <a href="{{ url_for('index') }}"><button id="backBtn">⬅️ Back to Home</button></a>
-
-      <script>
-        let seconds = 10;
-        const msg = document.getElementById("redirectMsg");
-        const btn = document.getElementById("backBtn");
-        const timer = setInterval(() => {
-          seconds--;
-          msg.textContent = "Redirecting to home in " + seconds + "s...";
-          if (seconds <= 0) {
-            clearInterval(timer);
-            window.location.href = "{{ url_for('index') }}";
-          }
-        }, 1000);
-      </script>
-
+        <div class="status-message warning">
+            <div class="status-icon">
+                <i class="fas fa-lock"></i>
+            </div>
+            <h2>Too Many Failed Attempts</h2>
+            <p>This transfer has been temporarily locked due to multiple incorrect attempts.</p>
+            <p>Please try again in <strong>{{ minutes_left }} minute{% if minutes_left != 1 %}s{% endif %}</strong>.</p>
+        </div>
+    
     {% else %}
-      {% if wrong_otp %}
-        <div class="flash"><div>❌ Incorrect OTP. Please try again.</div></div>
-      {% endif %}
-      {% if wrong_secret %}
-        <div class="flash"><div>❌ Secret Key does not match this link.</div></div>
-      {% endif %}
-      {% if error %}
-        <div class="flash"><div>⚠️ {{ error }}</div></div>
-      {% endif %}
+        <div class="verify-header">
+            <i class="fas fa-download"></i>
+            <h2>Secure File Download</h2>
+            <p>Enter the OTP and Secret Key to download your file</p>
+            {% if expires_at %}
+                <div class="expiry-notice" id="countdown" data-expires-at="{{ expires_at.isoformat() }}">
+                    <i class="fas fa-clock"></i>
+                </div>
+            {% endif %}
+        </div>
 
-      <form method="POST">
-        <label for="otp">One-Time Passcode (OTP)</label>
-        <input type="text" id="otp" name="otp" inputmode="numeric" maxlength="6" placeholder="6-digit code" required>
+        <form method="POST" class="verify-form" id="verifyForm">
+            <div class="form-group">
+                <label for="otp">One-Time Password (OTP)</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-key"></i>
+                    <input type="text" id="otp" name="otp" placeholder="Enter 6-digit OTP" required pattern="[0-9]{6}" maxlength="6">
+                </div>
+                <p class="input-note">Check your email for the OTP code</p>
+            </div>
 
-        <label for="secret_key">Secret Key</label>
-        <input type="text" id="secret_key" name="secret_key" placeholder="Paste the secret key" required>
+            <div class="form-group">
+                <label for="secret_key">Secret Key</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-lock"></i>
+                    <input type="text" id="secret_key" name="secret_key" placeholder="Paste the Secret Key" required>
+                </div>
+                <p class="input-note">Get this from the person who sent you the file</p>
+            </div>
 
-        <button type="submit">⬇️ Verify & Download</button>
-      </form>
+            {% if wrong_otp %}
+                <div class="alert error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Incorrect OTP. {{ attempts_remaining }} attempt{% if attempts_remaining != 1 %}s{% endif %} remaining.
+                </div>
+            {% endif %}
+
+            {% if wrong_secret %}
+                <div class="alert error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Incorrect Secret Key. Please verify and try again.
+                </div>
+            {% endif %}
+
+            {% if error %}
+                <div class="alert error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    {{ error }}
+                </div>
+            {% endif %}
+
+            <button type="submit" class="btn-primary">
+                <i class="fas fa-download"></i> Decrypt & Download
+            </button>
+        </form>
+
+        <div class="help-section">
+            <h3><i class="fas fa-question-circle"></i> Need Help?</h3>
+            <ul>
+                <li>The OTP was sent to the recipient's email address</li>
+                <li>The Secret Key should be provided by the person who sent the file</li>
+                <li>Both OTP and Secret Key are required to decrypt the file</li>
+                <li>The file will be automatically deleted after download</li>
+            </ul>
+        </div>
     {% endif %}
-  </div>
-</body>
-</html>
+</div>
+{% endblock %}

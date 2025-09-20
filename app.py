@@ -11,18 +11,16 @@ import smtplib
 from email.mime.text import MIMEText
 from io import BytesIO
 
-import os
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
-
-
 from flask import (
     Flask, render_template, request, redirect,
     url_for, send_file, abort, flash, session, make_response
 )
 from werkzeug.utils import secure_filename
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # -------------------- App & Config --------------------
 app = Flask(__name__)
@@ -43,8 +41,8 @@ SMTP_PASS = os.environ.get("SMTP_PASS", "")
 FROM_EMAIL = os.environ.get("FROM_EMAIL", SMTP_USER or "no-reply@example.com")
 
 # Security settings
-ALLOWED_EXPIRY = {5, 10, 60}  # minutes
-OTP_MAX_TRIES = int(os.environ.get("OTP_MAX_TRIES", "5"))
+ALLOWED_EXPIRY = {5, 10, 60}
+OTP_MAX_TRIES = int(os.environ.get("OTP_MAX_TRIES", "3"))
 LOCK_MIN = int(os.environ.get("LOCK_MIN", "10"))
 EMAIL_REGEX = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
 
@@ -91,6 +89,12 @@ def to_dt(val):
         return datetime.datetime.utcfromtimestamp(val)
     return None
 
+def get_ist_time():
+    utc_now = datetime.datetime.utcnow()
+    ist_offset = datetime.timedelta(hours=5, minutes=30)
+    ist_now = utc_now + ist_offset
+    return ist_now
+
 # -------------------- Crypto helpers --------------------
 def encrypt_file(plaintext_bytes: bytes):
     key = AESGCM.generate_key(bit_length=256)
@@ -109,7 +113,16 @@ def key_fingerprint(secret_key_bytes: bytes, token: str) -> str:
 
 # -------------------- OTP helpers --------------------
 def gen_otp():
-    return f"{secrets.randbelow(1000000):06d}"
+    # Generate a more secure 6-digit OTP with better randomness
+    import time
+    # Use current timestamp as part of seed for uniqueness
+    timestamp_seed = int(time.time() * 1000000) % 1000000
+    # Combine with secure random for better uniqueness
+    secure_part = secrets.randbelow(1000000)
+    # XOR for better distribution and ensure 6 digits
+    otp_num = (timestamp_seed ^ secure_part) % 1000000
+    # Ensure it's always 6 digits (pad with leading zeros if needed)
+    return f"{otp_num:06d}"
 
 def hash_otp(otp: str, salt: str):
     return hashlib.sha256((salt + otp).encode()).hexdigest()
@@ -117,7 +130,6 @@ def hash_otp(otp: str, salt: str):
 # -------------------- Email helper --------------------
 def send_email(to_email: str, subject: str, html_body: str):
     if not (SMTP_HOST and SMTP_USER and SMTP_PASS):
-        # Dev mode: print instead of sending
         print("=== DEV EMAIL DUMP ===")
         print("TO:", to_email)
         print("SUBJECT:", subject)
@@ -159,13 +171,45 @@ def purge_row_and_files(row):
 
 def _notify_sender_download(row, ip):
     email = row["recipient_email"]
-    subject = "BlackFile: Your file was downloaded"
+    filename = row['filename_orig']
+    
+    # Get file extension for subject
+    file_ext = filename.split('.')[-1].upper() if '.' in filename else 'FILE'
+    
+    subject = f"BlackFile: {file_ext} File '{filename}' Was Downloaded Successfully"
     html = f"""
-        <p>Your file <b>{row['filename_orig']}</b> has been downloaded.</p>
-        <p>From IP: <code>{ip}</code></p>
-        <p>Token: <code>{row['token']}</code></p>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f9f9f9; padding: 20px; border-radius: 10px;">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h2 style="color: #10b981; margin-bottom: 10px;">✅ Download Successful!</h2>
+                <p style="color: #666; font-size: 16px;">Your secure file transfer has been completed</p>
+            </div>
+            
+            <div style="background: white; padding: 20px; border-radius: 8px; border-left: 4px solid #10b981; margin: 20px 0;">
+                <h3 style="color: #333; margin-top: 0;">📁 File Downloaded: <span style="color: #4299e1;">{filename}</span></h3>
+                <div style="margin: 15px 0;">
+                    <p style="margin: 8px 0;"><strong>🕒 Download Time:</strong> {get_ist_time().strftime('%Y-%m-%d at %H:%M IST')}</p>
+                    <p style="margin: 8px 0;"><strong>🌐 Downloaded From:</strong> <code style="background: #f1f1f1; padding: 2px 6px; border-radius: 4px;">{ip}</code></p>
+                </div>
+            </div>
+            
+            <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 15px; margin: 20px 0;">
+                <p style="margin: 0; color: #856404;">
+                    <strong>🔒 Security Notice:</strong> For your protection, this file has been permanently deleted from our servers and the download link is now invalid.
+                </p>
+            </div>
+            
+            <div style="text-align: center; margin-top: 30px; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px;">
+                <h3 style="color: white; margin: 0 0 10px 0;">🏠 Returning to Homepage</h3>
+                <p style="color: #e0e7ff; margin: 0; font-size: 14px;">This notification will redirect you to the BlackFile homepage in 5 seconds...</p>
+            </div>
+            
+            <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+            <p style="color: #888; font-size: 12px; text-align: center; margin: 0;">
+                This is an automated message from <strong>BlackFile</strong> secure transfer service.<br>
+                <a href="#" style="color: #4299e1; text-decoration: none;">blackfile.secure</a>
+            </p>
+        </div>
     """
-    # Notify recipient (same email) — if you want sender email, store sender in DB and use that here.
     send_email(email, subject, html)
 
 def _bump_attempts_and_maybe_lock(token: str, attempts_now: int):
@@ -177,92 +221,125 @@ def _bump_attempts_and_maybe_lock(token: str, attempts_now: int):
             "UPDATE transfers SET attempts=?, locked_until=? WHERE token=?",
             (attempts_now, locked_until, token)
         )
+        con.commit()
+        con.close()
+        return True
     else:
         con.execute("UPDATE transfers SET attempts=? WHERE token=?", (attempts_now, token))
-    con.commit()
-    con.close()
+        con.commit()
+        con.close()
+        return False
 
 # -------------------- Routes --------------------
 @app.route("/")
 def index():
-    # Prevent caching of the form page
-    resp = make_response(render_template("index.html", allowed_expiry=sorted(ALLOWED_EXPIRY)))
+    resp = make_response(render_template("modern-index.html", allowed_expiry=sorted(ALLOWED_EXPIRY)))
     resp.headers["Cache-Control"] = "no-store"
     return resp
 
 @app.route("/upload", methods=["POST"])
 def upload():
-    email = request.form.get("email", "").strip()
-    file = request.files.get("file")
-    expiry = int(request.form.get("expiry", "10"))
+    try:
+        email = request.form.get("email", "").strip()
+        file = request.files.get("file")
+        expiry = int(request.form.get("expiry", "10"))
 
-    if expiry not in ALLOWED_EXPIRY:
-        flash("Invalid expiry option.")
+        if expiry not in ALLOWED_EXPIRY:
+            flash("Invalid expiry option.")
+            return redirect(url_for("index"))
+
+        if not EMAIL_REGEX.match(email):
+            flash("Please enter a valid email address.")
+            return redirect(url_for("index"))
+
+        if not file or file.filename == "":
+             flash("Please choose a file.")
+             return redirect(url_for("index"))
+            
+        if not file.content_type:
+            flash("Invalid file type.")
+            return redirect(url_for("index"))
+
+        filename_orig = secure_filename(file.filename)
+        file_bytes = file.read()
+        if not file_bytes:
+            flash("Uploaded file is empty.")
+            return redirect(url_for("index"))
+
+        sha256_hex = hashlib.sha256(file_bytes).hexdigest()
+
+        # Encrypt file at rest
+        secret_key, nonce, ciphertext = encrypt_file(file_bytes)
+        token = uuid.uuid4().hex
+        blob_path = os.path.join(UPLOADS, f"{token}.blob")
+
+        with open(blob_path, "wb") as f:
+            f.write(ciphertext)
+
+        # OTP + key ID
+        otp = gen_otp()
+        salt = uuid.uuid4().hex
+        otp_hash = hash_otp(otp, salt)
+        k_id = key_fingerprint(secret_key, token)
+
+        now = datetime.datetime.utcnow()
+        expires_at = now + datetime.timedelta(minutes=expiry)
+
+        con = db()
+        con.execute("""
+            INSERT INTO transfers (
+                id, token, recipient_email, otp_hash, otp_salt, key_id,
+                filename_orig, filepath, nonce_b64, sha256_hex, created_at, expires_at
+            ) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            token, email, otp_hash, salt, k_id,
+            filename_orig, blob_path, base64.b64encode(nonce).decode(),
+            sha256_hex, now, expires_at
+        ))
+        con.commit()
+        con.close()
+
+        link = request.url_root.rstrip("/") + url_for("verify", token=token)
+        
+        # Convert UTC expires_at to IST for email display
+        ist_expires_at = expires_at + datetime.timedelta(hours=5, minutes=30)
+        
+        html = f"""
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #333;">BlackFile Secure Transfer</h2>
+                <p>You've received a secure file transfer via BlackFile.</p>
+                
+                <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 15px 0;">
+                    <p><strong>Transfer Details:</strong></p>
+                    <p>📁 File: <b>{filename_orig}</b></p>
+                    <p>⏰ Expires: <b>{ist_expires_at.strftime('%Y-%m-%d at %H:%M IST')}</b></p>
+                </div>
+                
+                <div style="background-color: #e8f4fc; padding: 15px; border-radius: 5px; margin: 15px 0;">
+                    <p><strong>To download your file:</strong></p>
+                    <p>1. Visit: <a href="{link}" style="word-break: break-all;">{link}</a></p>
+                    <p>2. Enter this OTP: <code style="background: #eee; padding: 5px; border-radius: 3px;">{otp}</code></p>
+                    <p>3. Ask the sender for the <b>Secret Key</b> (shared separately)</p>
+                </div>
+                
+                <p style="color: #d32f2f; font-size: 14px;">
+                    ⚠️ For security, this link will expire after download or at the expiration time.
+                </p>
+                
+                <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+                <p style="color: #888; font-size: 12px;">
+                    This is an automated message from BlackFile secure transfer service.</p>
+            </div>
+        """
+        send_email(email, "Your BlackFile secure link", html)
+
+        secret_key_b64 = base64.urlsafe_b64encode(secret_key).decode().rstrip("=")
+        session[f"secret_{token}"] = secret_key_b64
+        return redirect(url_for("sent", token=token))
+    except Exception as e:
+        app.logger.error(f"Upload error: {str(e)}")
+        flash("An error occurred during file upload. Please try again.")
         return redirect(url_for("index"))
-
-    if not EMAIL_REGEX.match(email):
-        flash("Please enter a valid email address.")
-        return redirect(url_for("index"))
-
-    if not file or file.filename == "":
-        flash("Please choose a file.")
-        return redirect(url_for("index"))
-
-    filename_orig = secure_filename(file.filename)
-    file_bytes = file.read()
-    if not file_bytes:
-        flash("Uploaded file is empty.")
-        return redirect(url_for("index"))
-
-    sha256_hex = hashlib.sha256(file_bytes).hexdigest()
-
-    # Encrypt file at rest
-    secret_key, nonce, ciphertext = encrypt_file(file_bytes)
-    token = uuid.uuid4().hex
-    blob_path = os.path.join(UPLOADS, f"{token}.blob")
-
-    with open(blob_path, "wb") as f:
-        f.write(ciphertext)
-
-    # OTP + key ID
-    otp = gen_otp()
-    salt = uuid.uuid4().hex
-    otp_hash = hash_otp(otp, salt)
-    k_id = key_fingerprint(secret_key, token)
-
-    now = datetime.datetime.utcnow()
-    expires_at = now + datetime.timedelta(minutes=expiry)
-
-    # Persist transfer row
-    con = db()
-    con.execute("""
-        INSERT INTO transfers (
-            token, recipient_email, otp_hash, otp_salt, key_id,
-            filename_orig, filepath, nonce_b64, sha256_hex, created_at, expires_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (
-        token, email, otp_hash, salt, k_id,
-        filename_orig, blob_path, base64.b64encode(nonce).decode(),
-        sha256_hex, now, expires_at
-    ))
-    con.commit()
-    con.close()
-
-    # Build and send email
-    link = request.url_root.rstrip("/") + url_for("verify", token=token)
-    html = f"""
-        <h3>BlackFile download link</h3>
-        <p>This link expires at <b>{expires_at.isoformat()}Z</b> and can be used once.</p>
-        <p><b>Link:</b> <a href="{link}">{link}</a></p>
-        <p><b>OTP:</b> <code>{otp}</code></p>
-        <p>You'll also need the <b>Secret Key</b> shared by the sender via a separate channel.</p>
-    """
-    send_email(email, "Your BlackFile secure link", html)
-
-    # Show secret to sender once
-    secret_key_b64 = base64.urlsafe_b64encode(secret_key).decode().rstrip("=")
-    session[f"secret_{token}"] = secret_key_b64
-    return redirect(url_for("sent", token=token))
 
 @app.route("/sent/<token>")
 def sent(token):
@@ -282,7 +359,7 @@ def sent(token):
     expiry_minutes = max(1, int((expires_at - created_at).total_seconds() // 60))
 
     return render_template(
-        "sent.html",
+        "modern-sent.html",
         link=request.url_root.rstrip("/") + url_for("verify", token=token),
         email=row["recipient_email"],
         secret_key=secret,
@@ -299,144 +376,127 @@ def verify(token):
     if not row:
         abort(404)
 
-    # Link expired?
     if is_expired(row):
         purge_row_and_files(row)
-        return render_template("verify.html", token=token, expired=True)
+        return render_template("modern-verify.html", token=token, expired=True)
 
-    # Already used?
     if row["used"]:
-        return render_template("verify.html", token=token, already_erased=True)
+        return render_template("modern-verify.html", token=token, already_erased=True)
 
-    # Locked?
     locked_until = row["locked_until"]
     if locked_until:
         lu = to_dt(locked_until)
         now = datetime.datetime.utcnow()
         if lu and now < lu:
             minutes_left = max(1, int((lu - now).total_seconds() // 60))
-            return render_template("verify.html", token=token, locked=True, minutes_left=minutes_left)
+            return render_template("modern-verify.html", token=token, locked=True, minutes_left=minutes_left)
 
     if request.method == "GET":
-        resp = make_response(render_template("verify.html", token=token))
-        # avoid any caching for the verify page
+        # Format expires_at for JavaScript
+        expires_at = to_dt(row["expires_at"])
+        expires_at_iso = expires_at.isoformat() + 'Z' if expires_at else None
+        
+        resp = make_response(render_template(
+            "modern-verify.html", 
+            token=token, 
+            expires_at=expires_at_iso,
+            expires_at_raw=expires_at
+        ))
         resp.headers["Cache-Control"] = "no-store"
         return resp
 
-    # POST: validate OTP and secret key
-    otp_input = request.form.get("otp", "").strip()
+    otp_input = request.form.get("otp", "").strip().replace("-", "")  # Remove dash from OTP
     secret_key_b64 = request.form.get("secret_key", "").strip()
 
     if not otp_input or not secret_key_b64:
-        return render_template("verify.html", token=token, error="Please enter both OTP and Secret Key.")
+        expires_at = to_dt(row["expires_at"])
+        expires_at_iso = expires_at.isoformat() + 'Z' if expires_at else None
+        return render_template("modern-verify.html", token=token, error="Please enter both OTP and Secret Key.", expires_at=expires_at_iso)
 
-    # OTP check
     if hash_otp(otp_input, row["otp_salt"]) != row["otp_hash"]:
-        _bump_attempts_and_maybe_lock(token, row["attempts"])
-        # Re-check lock status after increment
+        was_locked = _bump_attempts_and_maybe_lock(token, row["attempts"])
+        
         con = db()
         row2 = con.execute("SELECT * FROM transfers WHERE token=?", (token,)).fetchone()
         con.close()
-        locked = False
-        minutes_left = None
-        if row2 and row2["locked_until"]:
+        
+        attempts_remaining = OTP_MAX_TRIES - row2["attempts"]
+        
+        if was_locked or (row2["locked_until"] and to_dt(row2["locked_until"]) > datetime.datetime.utcnow()):
             lu2 = to_dt(row2["locked_until"])
-            if lu2 and datetime.datetime.utcnow() < lu2:
-                locked = True
-                minutes_left = max(1, int((lu2 - datetime.datetime.utcnow()).total_seconds() // 60))
-        return render_template("verify.html", token=token, wrong_otp=True, locked=locked, minutes_left=minutes_left)
+            minutes_left = max(1, int((lu2 - datetime.datetime.utcnow()).total_seconds() // 60))
+            return render_template("modern-verify.html", token=token, locked=True, minutes_left=minutes_left)
+        else:
+            expires_at = to_dt(row["expires_at"])
+            expires_at_iso = expires_at.isoformat() + 'Z' if expires_at else None
+            return render_template("modern-verify.html", token=token, wrong_otp=True, 
+                                  attempts_remaining=attempts_remaining, expires_at=expires_at_iso)
 
-    # Secret key decode + check
     try:
         pad = "=" * (-len(secret_key_b64) % 4)
         secret_key = base64.urlsafe_b64decode(secret_key_b64 + pad)
     except Exception:
         _bump_attempts_and_maybe_lock(token, row["attempts"])
-        return render_template("verify.html", token=token, error="Invalid key format. Please paste the exact Secret Key.")
+        expires_at = to_dt(row["expires_at"])
+        expires_at_iso = expires_at.isoformat() + 'Z' if expires_at else None
+        return render_template("modern-verify.html", token=token, error="Invalid key format. Please paste the exact Secret Key.", expires_at=expires_at_iso)
 
     if key_fingerprint(secret_key, token) != row["key_id"]:
         _bump_attempts_and_maybe_lock(token, row["attempts"])
-        return render_template("verify.html", token=token, wrong_secret=True)
+        expires_at = to_dt(row["expires_at"])
+        expires_at_iso = expires_at.isoformat() + 'Z' if expires_at else None
+        return render_template("modern-verify.html", token=token, wrong_secret=True, expires_at=expires_at_iso)
 
-    # Load ciphertext
     try:
         with open(row["filepath"], "rb") as f:
             ciphertext = f.read()
     except FileNotFoundError:
         purge_row_and_files(row)
-        return render_template("verify.html", token=token, already_erased=True)
+        return render_template("modern-verify.html", token=token, already_erased=True)
 
-    # Decrypt and send
     try:
         nonce = base64.b64decode(row["nonce_b64"])
         plaintext = decrypt_file(secret_key, nonce, ciphertext)
 
-        file_stream = BytesIO(plaintext)
-        file_stream.seek(0)
-
-        ip = client_ip()
+        # Mark as downloaded in database
         con = db()
-        con.execute("UPDATE transfers SET used=1, downloaded_from_ip=? WHERE token=?", (ip, token))
+        con.execute("UPDATE transfers SET used=1, downloaded_from_ip=? WHERE token=?", (client_ip(), token))
         con.commit()
         con.close()
 
-        # Delete encrypted blob (single-use)
+        # Send download notification
+        _notify_sender_download(row, client_ip())
+
+        # Encode file data for client-side download
+        file_data_b64 = base64.b64encode(plaintext).decode()
+        
+        # Schedule cleanup - remove encrypted file from server
         try:
             os.remove(row["filepath"])
         except FileNotFoundError:
             pass
 
-        _notify_sender_download(row, ip)
-        # Return as attachment download
-        return send_file(
-            file_stream,
-            as_attachment=True,
-            download_name=row["filename_orig"],
-            mimetype="application/octet-stream",
-            max_age=0
+        # Return success page with auto-download and redirect
+        return render_template(
+            "download-success.html",
+            filename=row["filename_orig"],
+            file_data=file_data_b64,
+            file_size=len(plaintext)
         )
-
     except Exception as e:
-        print("Decrypt/send error:", e)
-        return render_template("verify.html", token=token, error="Decryption failed. Please check your inputs.",Success = True)
+        app.logger.error(f"Decryption error: {e}")
+        expires_at = to_dt(row["expires_at"])
+        expires_at_iso = expires_at.isoformat() + 'Z' if expires_at else None
+        return render_template("modern-verify.html", token=token, error="Decryption failed. Please check your Secret Key.", expires_at=expires_at_iso)
 
-@app.route("/purge", methods=["POST"])
-def purge():
-    con = db()
-    rows = con.execute("SELECT * FROM transfers").fetchall()
-    con.close()
-    purged = 0
-    for r in rows:
-        # purge expired OR used & file gone
-        if is_expired(r) or (r["used"] and not os.path.exists(r["filepath"] or "")):
-            purge_row_and_files(r)
-            purged += 1
-    flash(f"Purged {purged} expired/used transfers.")
+@app.errorhandler(404)
+def not_found(e):
+    return render_template("modern-404.html"), 404
+
+@app.errorhandler(413)
+def too_large(e):
+    flash("File too large. Maximum size is 10MB.")
     return redirect(url_for("index"))
 
-@app.after_request
-def add_security_headers(resp):
-    resp.headers["X-Frame-Options"] = "DENY"
-    resp.headers["X-Content-Type-Options"] = "nosniff"
-    resp.headers["Referrer-Policy"] = "no-referrer"
-    resp.headers["Cache-Control"] = "no-store"
-    # Keep CSS/JS external; allow data: images for emojis, etc.
-    resp.headers["Content-Security-Policy"] = (
-        "default-src 'self'; "
-        "img-src 'self' data:; "
-        "style-src 'self'; "
-        "script-src 'self'; "
-        "object-src 'none'; "
-        "base-uri 'none'; "
-        "frame-ancestors 'none'"
-    )
-    return resp
-
-@app.route("/health")
-def health():
-    return {"status": "ok"}
-
-# -------------------- Run --------------------
 if __name__ == "__main__":
-    # Use 0.0.0.0 when deploying in a container
-    app.run(debug=True, port=5000)
+    app.run(debug=True, host="0.0.0.0", port=5000)

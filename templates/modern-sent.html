@@ -1,0 +1,346 @@
+{% extends "modern-base.html" %}
+
+{% block title %}File Sent Successfully - BlackFile{% endblock %}
+
+{% block content %}
+<!-- Success Header -->
+<section class="hero-section">
+    <div class="text-center mb-4">
+        <div style="font-size: 4rem; margin-bottom: 1rem;">
+            <i class="fas fa-check-circle" style="background: var(--success); background: linear-gradient(135deg, #10b981 0%, #059669 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; filter: drop-shadow(0 0 20px rgba(16, 185, 129, 0.3));"></i>
+        </div>
+        <h1 style="background: var(--success); background: linear-gradient(135deg, #10b981 0%, #059669 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+            File Sent Successfully!
+        </h1>
+        <p class="hero-subtitle">
+            Your file has been encrypted and uploaded securely. The recipient will receive a download link shortly.
+        </p>
+    </div>
+</section>
+
+<!-- Main Information Card -->
+<section class="mb-4">
+    <div class="glass-card super-glass" style="max-width: 800px; margin: 0 auto;">
+        <div class="alert alert-success mb-4">
+            <i class="fas fa-envelope"></i>
+            <div>
+                <strong>Email Sent!</strong> The secure download link has been sent to <strong>{{ email }}</strong>
+            </div>
+        </div>
+
+        <!-- Transfer Details -->
+        <div class="mb-4">
+            <h3><i class="fas fa-info-circle text-accent"></i> Transfer Details</h3>
+            <div class="glass" style="padding: 1.5rem; margin-top: 1rem;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    <div>
+                        <div class="text-sm text-muted">Recipient</div>
+                        <div class="font-weight-600">{{ email }}</div>
+                    </div>
+                    <div>
+                        <div class="text-sm text-muted">Expires In</div>
+                        <div class="font-weight-600">{{ expiry_minutes }} minutes</div>
+                    </div>
+                    <div>
+                        <div class="text-sm text-muted">Security Level</div>
+                        <div class="font-weight-600" style="color: var(--success);">AES-256</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Secret Key Section -->
+        <div class="mb-4">
+            <h3><i class="fas fa-key text-warning"></i> Secret Key</h3>
+            <div class="alert alert-warning mb-3">
+                <i class="fas fa-exclamation-triangle"></i>
+                <div>
+                    <strong>Important:</strong> Share this secret key with the recipient through a separate, secure channel (like phone, SMS, or in-person). Never send it via the same email as the download link.
+                </div>
+            </div>
+            
+            <div class="glass" style="padding: 1.5rem;">
+                <div class="mb-3">
+                    <label class="form-label">
+                        <i class="fas fa-shield-alt"></i> Encryption Secret Key
+                    </label>
+                    <div class="copy-group">
+                        <input 
+                            type="text" 
+                            class="form-input copy-input" 
+                            value="{{ secret_key }}" 
+                            readonly
+                            id="secretKey"
+                            style="font-family: 'JetBrains Mono', monospace; background: rgba(0,0,0,0.3);"
+                        >
+                        <button 
+                            type="button" 
+                            class="btn btn-secondary copy-btn" 
+                            onclick="copyToClipboard('{{ secret_key }}', this)"
+                        >
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="d-flex gap-2" style="flex-wrap: wrap;">
+                    <button class="btn btn-primary btn-sm" onclick="shareViaWhatsApp()">
+                        <i class="fab fa-whatsapp"></i> Share via WhatsApp
+                    </button>
+                    <button class="btn btn-secondary btn-sm" onclick="shareViaSMS()">
+                        <i class="fas fa-sms"></i> Share via SMS
+                    </button>
+                    <button class="btn btn-secondary btn-sm" onclick="downloadAsText()">
+                        <i class="fas fa-download"></i> Download Key
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Download Link Section -->
+        <div class="mb-4">
+            <h3><i class="fas fa-link text-info"></i> Download Link</h3>
+            <div class="glass" style="padding: 1.5rem;">
+                <div class="mb-3">
+                    <label class="form-label">Secure Download URL</label>
+                    <div class="copy-group">
+                        <input 
+                            type="text" 
+                            class="form-input copy-input" 
+                            value="{{ link }}" 
+                            readonly
+                            id="downloadLink"
+                        >
+                        <button 
+                            type="button" 
+                            class="btn btn-secondary copy-btn" 
+                            onclick="copyToClipboard('{{ link }}', this)"
+                        >
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        The recipient needs both the download link (sent via email) and the secret key (share separately) to access the file.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- File Hash Section -->
+        <div class="mb-4">
+            <h3><i class="fas fa-fingerprint text-accent"></i> File Verification</h3>
+            <div class="glass" style="padding: 1.5rem;">
+                <div class="mb-3">
+                    <label class="form-label">SHA-256 Hash</label>
+                    <div class="copy-group">
+                        <input 
+                            type="text" 
+                            class="form-input copy-input" 
+                            value="{{ sha256_hex }}" 
+                            readonly
+                            id="fileHash"
+                            style="font-family: 'JetBrains Mono', monospace;"
+                        >
+                        <button 
+                            type="button" 
+                            class="btn btn-secondary copy-btn" 
+                            onclick="copyToClipboard('{{ sha256_hex }}', this)"
+                        >
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+                </div>
+                
+                <p class="text-sm text-muted">
+                    This unique fingerprint can be used to verify the file's integrity after download. 
+                    Compare it with the recipient's downloaded file hash to ensure it wasn't tampered with.
+                </p>
+            </div>
+        </div>
+
+        <!-- Security Instructions -->
+        <div class="mb-4">
+            <h3><i class="fas fa-shield-alt text-success"></i> Security Best Practices</h3>
+            <div class="glass" style="padding: 1.5rem;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+                    <div>
+                        <h4><i class="fas fa-mobile-alt text-primary"></i> Share Key Separately</h4>
+                        <p class="text-sm">Send the secret key through a different communication channel than the email (phone, SMS, secure messenger).</p>
+                    </div>
+                    <div>
+                        <h4><i class="fas fa-clock text-warning"></i> Time Sensitive</h4>
+                        <p class="text-sm">The download link expires in {{ expiry_minutes }} minutes. Make sure the recipient downloads it promptly.</p>
+                    </div>
+                    <div>
+                        <h4><i class="fas fa-trash-alt text-danger"></i> One-Time Use</h4>
+                        <p class="text-sm">The file will be permanently deleted after download. No copies remain on our servers.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="text-center">
+            <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-plus"></i> Send Another File
+            </a>
+            <button class="btn btn-secondary btn-lg" onclick="printPage()">
+                <i class="fas fa-print"></i> Print Details
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="mb-4">
+    <div class="glass-card" style="max-width: 600px; margin: 0 auto;">
+        <div class="text-center mb-3">
+            <h3>What Happens Next?</h3>
+        </div>
+        
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <div class="d-flex align-center gap-3">
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; flex-shrink: 0;">1</div>
+                <div>
+                    <h4>Email Delivered</h4>
+                    <p class="text-sm text-muted">The recipient receives an email with the secure download link and instructions.</p>
+                </div>
+            </div>
+            
+            <div class="d-flex align-center gap-3">
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; flex-shrink: 0;">2</div>
+                <div>
+                    <h4>Two-Factor Authentication</h4>
+                    <p class="text-sm text-muted">The recipient enters the OTP from email and the secret key you share separately.</p>
+                </div>
+            </div>
+            
+            <div class="d-flex align-center gap-3">
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--success); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; flex-shrink: 0;">3</div>
+                <div>
+                    <h4>Secure Download</h4>
+                    <p class="text-sm text-muted">File is decrypted and downloaded. You'll receive a confirmation email.</p>
+                </div>
+            </div>
+            
+            <div class="d-flex align-center gap-3">
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--error); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; flex-shrink: 0;">4</div>
+                <div>
+                    <h4>Auto-Deletion</h4>
+                    <p class="text-sm text-muted">The file is permanently erased from our servers. No traces remain.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// WhatsApp sharing
+function shareViaWhatsApp() {
+    const secretKey = document.getElementById('secretKey').value;
+    const message = encodeURIComponent(`🔒 BlackFile Secret Key: ${secretKey}\n\nUse this key along with the download link to access your secure file. Keep this confidential!`);
+    window.open(`https://wa.me/?text=${message}`, '_blank');
+}
+
+// SMS sharing (works on mobile devices)
+function shareViaSMS() {
+    const secretKey = document.getElementById('secretKey').value;
+    const message = encodeURIComponent(`BlackFile Secret Key: ${secretKey}\n\nUse this with the download link to access your secure file.`);
+    window.open(`sms:?body=${message}`, '_blank');
+}
+
+// Download key as text file
+function downloadAsText() {
+    const secretKey = document.getElementById('secretKey').value;
+    const downloadLink = document.getElementById('downloadLink').value;
+    const fileHash = document.getElementById('fileHash').value;
+    
+    const content = `BlackFile Transfer Details
+========================
+
+Secret Key: ${secretKey}
+Download Link: ${downloadLink}
+SHA-256 Hash: ${fileHash}
+
+Instructions:
+1. Share the secret key separately from the download link
+2. Recipient needs both the link and key to access the file
+3. File expires in {{ expiry_minutes }} minutes
+4. File will be permanently deleted after download
+
+Generated: ${new Date().toLocaleString()}
+`;
+    
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'blackfile-transfer-details.txt';
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+    
+    showNotification('Transfer details downloaded successfully!', 'success');
+}
+
+// Print page
+function printPage() {
+    window.print();
+}
+
+// Auto-focus on secret key for easy copying
+document.addEventListener('DOMContentLoaded', function() {
+    // Add click to select all for readonly inputs
+    document.querySelectorAll('input[readonly]').forEach(input => {
+        input.addEventListener('click', function() {
+            this.select();
+        });
+    });
+    
+    // Add animation to steps
+    const steps = document.querySelectorAll('.d-flex.align-center');
+    steps.forEach((step, index) => {
+        step.style.opacity = '0';
+        step.style.transform = 'translateX(-20px)';
+        step.style.animation = `slideInRight 0.6s ease forwards ${index * 0.2}s`;
+    });
+    
+    // Show success notification
+    showNotification('Transfer completed successfully! Share the secret key separately.', 'success');
+});
+
+// Add print styles
+const style = document.createElement('style');
+style.textContent = `
+@media print {
+    .navbar, .footer, .btn, .floating-particles {
+        display: none !important;
+    }
+    .glass-card, .glass {
+        background: white !important;
+        border: 1px solid #ccc !important;
+        box-shadow: none !important;
+    }
+    body {
+        background: white !important;
+        color: black !important;
+    }
+    .copy-group {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+    }
+    .copy-btn {
+        display: none !important;
+    }
+}
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

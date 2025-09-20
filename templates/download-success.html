@@ -1,0 +1,179 @@
+{% extends "modern-base.html" %}
+
+{% block title %}Download Successful - BlackFile{% endblock %}
+
+{% block extra_css %}
+<style>
+.success-animation {
+    animation: successBounce 0.6s ease-out;
+}
+
+@keyframes successBounce {
+    0% { transform: scale(0); opacity: 0; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.countdown-circle {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: conic-gradient(var(--accent-solid) 0deg, transparent 0deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    position: relative;
+    transition: all 0.1s linear;
+}
+
+.countdown-number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--text-primary);
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.progress-ring {
+    animation: progressSpin 5s linear;
+}
+
+@keyframes progressSpin {
+    0% { background: conic-gradient(var(--accent-solid) 0deg, transparent 0deg); }
+    100% { background: conic-gradient(var(--accent-solid) 360deg, transparent 360deg); }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="hero-section" style="min-height: 80vh; display: flex; align-items: center; justify-content: center;">
+    <div class="glass-card super-glass" style="max-width: 600px; text-align: center; padding: 3rem;">
+        
+        <!-- Success Icon -->
+        <div class="success-animation" style="margin-bottom: 2rem;">
+            <div style="font-size: 4rem; margin-bottom: 1rem;">
+                <i class="fas fa-check-circle" style="color: var(--success); filter: drop-shadow(0 0 20px rgba(16, 185, 129, 0.4));"></i>
+            </div>
+            <h1 style="color: var(--success); margin-bottom: 0.5rem;">Download Successful!</h1>
+            <p class="text-muted" style="font-size: 1.1rem;">Your file has been securely downloaded</p>
+        </div>
+
+        <!-- File Details -->
+        <div class="glass" style="padding: 1.5rem; margin: 2rem 0; background: rgba(255, 255, 255, 0.05);">
+            <h3 style="margin-bottom: 1rem;">
+                <i class="fas fa-file-download" style="color: var(--accent-solid); margin-right: 0.5rem;"></i>
+                {{ filename }}
+            </h3>
+            <p class="text-muted" style="font-size: 0.9rem;">
+                File Size: {{ "%.2f"|format(file_size / 1024 / 1024) }} MB
+                <br>
+                <i class="fas fa-shield-alt text-success"></i> Encrypted transfer completed securely
+            </p>
+        </div>
+
+        <!-- Countdown Timer -->
+        <div style="margin: 2rem 0;">
+            <div class="countdown-circle progress-ring" id="countdownCircle">
+                <span class="countdown-number" id="countdownNumber">5</span>
+            </div>
+            <h3 style="margin-bottom: 0.5rem;">Redirecting to Homepage</h3>
+            <p class="text-muted">You will be automatically redirected in <span id="countdownText" style="color: var(--accent-solid); font-weight: bold;">5</span> seconds</p>
+        </div>
+
+        <!-- Security Notice -->
+        <div class="glass" style="padding: 1rem; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2);">
+            <i class="fas fa-trash-alt" style="color: var(--success); margin-right: 0.5rem;"></i>
+            <strong style="color: var(--success);">Security Notice:</strong>
+            <span class="text-sm">The file and download link have been permanently deleted from our servers.</span>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a href="{{ url_for('index') }}" class="btn btn-primary">
+                <i class="fas fa-home"></i> Go to Homepage
+            </a>
+            <button onclick="downloadFile()" class="btn btn-secondary">
+                <i class="fas fa-download"></i> Download Again
+            </button>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const countdownNumber = document.getElementById('countdownNumber');
+    const countdownText = document.getElementById('countdownText');
+    const countdownCircle = document.getElementById('countdownCircle');
+    
+    let timeLeft = 5;
+    
+    // Auto-download file
+    downloadFile();
+    
+    // Update countdown every second
+    const countdownInterval = setInterval(function() {
+        timeLeft--;
+        
+        if (timeLeft > 0) {
+            countdownNumber.textContent = timeLeft;
+            countdownText.textContent = timeLeft;
+            
+            // Update circle progress
+            const progress = ((5 - timeLeft) / 5) * 360;
+            countdownCircle.style.background = `conic-gradient(var(--accent-solid) ${progress}deg, rgba(255,255,255,0.1) ${progress}deg)`;
+        } else {
+            clearInterval(countdownInterval);
+            
+            // Show completion
+            countdownNumber.textContent = '✓';
+            countdownText.textContent = '0';
+            countdownCircle.style.background = 'conic-gradient(var(--success) 360deg, transparent 360deg)';
+            
+            // Redirect to homepage
+            window.location.href = '{{ url_for("index") }}';
+        }
+    }, 1000);
+    
+    // Show notification
+    showNotification('File downloaded successfully! Link has been deleted for security.', 'success');
+});
+
+// Download file function
+function downloadFile() {
+    try {
+        const fileData = '{{ file_data }}';
+        const fileName = '{{ filename }}';
+        
+        // Convert base64 to blob
+        const byteCharacters = atob(fileData);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: 'application/octet-stream' });
+        
+        // Create download link
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = fileName;
+        
+        // Trigger download
+        document.body.appendChild(a);
+        a.click();
+        
+        // Cleanup
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+    } catch (error) {
+        console.error('Download failed:', error);
+        showNotification('Download failed. Please try again.', 'error');
+    }
+}
+</script>
+{% endblock %}

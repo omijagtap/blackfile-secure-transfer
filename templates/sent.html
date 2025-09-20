@@ -1,41 +1,141 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>BlackFile – Sent</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-  <div class="card">
-    <h1>✅ Link Sent</h1>
-    <p class="subtitle">We emailed the recipient with the download link + OTP.</p>
+{% extends "base.html" %}
 
-    <label>Download Link</label>
-    <input type="text" value="{{ link }}" readonly>
+{% block title %}BlackFile - Link Sent Successfully{% endblock %}
 
-    <label>Recipient</label>
-    <input type="text" value="{{ email }}" readonly>
+{% block content %}
+<div id="toast" class="toast" data-message="Secure link emailed to {{ email }}" aria-live="polite"></div>
+<div class="sent-card">
+    <div class="sent-header">
+      <div class="success-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd" />
+        </svg>
+      </div>
+      <h1 class="sent-heading">🎉 Secure Link Sent Successfully!</h1>
+      <p class="sent-subtitle">Your file has been securely encrypted and sent to <strong>{{ email }}</strong>. The recipient has received a download link with an OTP via email.</p>
+    </div>
 
-    <label>Secret Key (share via another channel)</label>
-    <input type="text" value="{{ secret_key }}" readonly>
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="info-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M21.731 2.269a2.625 2.625 0 00-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 000-3.712zM19.513 8.199l-3.712-3.712-8.4 8.4a5.25 5.25 0 00-1.32 2.214l-.8 2.685a.75.75 0 00.933.933l2.685-.8a5.25 5.25 0 002.214-1.32l8.4-8.4z" />
+            <path d="M5.25 5.25a3 3 0 00-3 3v10.5a3 3 0 003 3h10.5a3 3 0 003-3V13.5a.75.75 0 00-1.5 0v5.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5V8.25a1.5 1.5 0 011.5-1.5h5.25a.75.75 0 000-1.5H5.25z" />
+          </svg>
+        </div>
+        <div class="info-content">
+          <h3>Download Link</h3>
+          <p class="info-note">Share this link with the recipient.</p>
+          <div class="copy-field">
+            <input type="text" value="{{ link }}" id="downloadLink" readonly>
+            <button class="copy-btn" data-copy-target="downloadLink">
+              <span class="copy-text"><i class="fas fa-copy"></i> Copy</span>
+              <span class="copied-text"><i class="fas fa-check"></i> Copied!</span>
+            </button>
+          </div>
+        </div>
+      </div>
 
-    <label>SHA-256 of original file</label>
-    <input type="text" value="{{ sha256_hex }}" readonly>
+      <div class="info-card">
+        <div class="info-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z" clip-rule="evenodd" />
+          </svg>
+        </div>
+        <div class="info-content">
+          <h3>Recipient</h3>
+          <p class="info-note">The email address the link was sent to.</p>
+          <div class="copy-field">
+            <input type="text" value="{{ email }}" id="recipientEmail" readonly>
+            <button class="copy-btn" data-copy-target="recipientEmail">
+              <span class="copy-text"><i class="fas fa-copy"></i> Copy</span>
+              <span class="copied-text"><i class="fas fa-check"></i> Copied!</span>
+            </button>
+          </div>
+        </div>
+      </div>
 
-    <p class="hint">This link expires in {{ expiry_minutes }} minutes or after 1 download, whichever comes first.</p>
+      <div class="info-card important">
+        <div class="info-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" d="M12.516 2.17a.75.75 0 00-1.032 0 11.209 11.209 0 01-7.877 3.08.75.75 0 00-.722.515A12.74 12.74 0 002.25 9.75c0 5.942 4.064 10.933 9.563 12.348a.749.749 0 00.374 0c5.499-1.415 9.563-6.406 9.563-12.348 0-1.39-.223-2.73-.635-3.985a.75.75 0 00-.722-.516l-.143.001c-2.996 0-5.717-1.17-7.734-3.08zm3.094 8.016a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd" />
+          </svg>
+        </div>
+        <div class="info-content">
+          <h3>🔑 Secret Key <span class="security-badge">Critical!</span></h3>
+          <p class="info-note"><strong>⚠️ This key is shown only ONCE!</strong> Share it securely via a different channel (WhatsApp, Signal, phone call, or in-person).</p>
+          <div class="copy-field">
+            <input type="text" value="{{ secret_key }}" id="secretKey" readonly>
+            <button class="copy-btn" data-copy-target="secretKey">
+              <span class="copy-text"><i class="fas fa-copy"></i> Copy Key</span>
+              <span class="copied-text"><i class="fas fa-check"></i> Copied!</span>
+            </button>
+          </div>
+        </div>
+      </div>
 
-    <a href="{{ url_for('index') }}"><button>⬅️ Back to Home</button></a>
-  </div>
+      <div class="info-card">
+        <div class="info-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" d="M10.5 3.798v5.02a3 3 0 01-.879 2.121l-2.377 2.377a9.845 9.845 0 015.091 1.013 8.315 8.315 0 005.713.636l.285-.071-3.954-3.955a3 3 0 01-.879-2.121v-5.02a23.614 23.614 0 00-3 0zm4.5.138a.75.75 0 00.093-1.495A24.837 24.837 0 0012 2.25a25.048 25.048 0 00-3.093.191A.75.75 0 009 3.936v4.882a1.5 1.5 0 01-.44 1.06l-6.293 6.294c-1.62 1.621-.903 4.475 1.471 4.88 2.686.46 5.447.698 8.262.698 2.816 0 5.576-.239 8.262-.697 2.373-.406 3.092-3.26 1.47-4.881L15.44 9.879A1.5 1.5 0 0115 8.818V4.064z" clip-rule="evenodd" />
+          </svg>
+        </div>
+        <div class="info-content">
+          <h3>SHA-256 File Hash</h3>
+          <p class="info-note">Verify file integrity after download with this checksum</p>
+          <div class="copy-field">
+            <input type="text" value="{{ sha256_hex }}" id="fileHash" readonly>
+            <button class="copy-btn" data-copy-target="fileHash">
+              <span class="copy-text"><i class="fas fa-copy"></i> Copy</span>
+              <span class="copied-text"><i class="fas fa-check"></i> Copied!</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
-  <!-- Overlay -->
-  <div class="overlay hidden" id="overlay">
-    <div class="overlay-card">
-      <h2>🔒 Secure Processing</h2>
-      <div class="steps" id="stepsContainer"></div>
-      <div class="loader"></div>
+    <div class="alert-section">
+      <div class="alert-card warning">
+        <div class="alert-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" />
+          </svg>
+        </div>
+        <div class="alert-content">
+          <h4>⏰ Time Limit</h4>
+          <p>This secure link will expire in <strong>{{ expiry_minutes }} minutes</strong> or after <strong>1 successful download</strong>, whichever happens first.</p>
+        </div>
+      </div>
+
+      <div class="alert-card security">
+        <div class="alert-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" d="M12.516 2.17a.75.75 0 00-1.032 0 11.209 11.209 0 01-7.877 3.08.75.75 0 00-.722.515A12.74 12.74 0 002.25 9.75c0 5.942 4.064 10.933 9.563 12.348a.749.749 0 00.374 0c5.499-1.415 9.563-6.406 9.563-12.348 0-1.39-.223-2.73-.635-3.985a.75.75 0 00-.722-.516l-.143.001c-2.996 0-5.717-1.17-7.734-3.08zm3.094 8.016a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd" />
+          </svg>
+        </div>
+        <div class="alert-content">
+          <h4>🔐 Security Best Practice</h4>
+          <p><strong>DO NOT</strong> send the Secret Key via email! Use a different secure channel like WhatsApp, Signal, phone call, or share in person for maximum security.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="action-buttons">
+      <a href="{{ url_for('index') }}" class="btn-primary">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M11.47 3.84a.75.75 0 011.06 0l8.69 8.69a.75.75 0 101.06-1.06l-8.689-8.69a2.25 2.25 0 00-3.182 0l-8.69 8.69a.75.75 0 001.061 1.06l8.69-8.69z" />
+          <path d="M12 5.432l8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 01-.75-.75v-4.5a.75.75 0 00-.75-.75h-3a.75.75 0 00-.75.75V21a.75.75 0 01-.75.75H5.625a1.875 1.875 0 01-1.875-1.875v-6.198a2.29 2.29 0 00.091-.086L12 5.43z" />
+        </svg>
+        🏠 Send Another File
+      </a>
+      
+      <button class="btn-secondary" onclick="if(navigator.share){navigator.share({title:'BlackFile Secure Transfer',text:'I\'ve sent you a secure file via BlackFile',url:'{{ link }}'});}else{navigator.clipboard.writeText('{{ link }}');alert('Link copied to clipboard!');}">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <path fill-rule="evenodd" d="M15.75 4.5a3 3 0 11.825 2.066l-8.421 4.679a3.002 3.002 0 010 1.51l8.421 4.679a3 3 0 11-.729 1.31l-8.421-4.678a3 3 0 110-4.132l8.421-4.679a3 3 0 01-.096-.755z" clip-rule="evenodd" />
+        </svg>
+        📤 Share Link
+      </button>
     </div>
   </div>
-
-  <script src="{{ url_for('static', filename='app.js') }}"></script>
-</body>
-</html>
+</div>
+{% endblock %}

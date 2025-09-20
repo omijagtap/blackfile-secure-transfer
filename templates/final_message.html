@@ -1,18 +1,20 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>BlackFile - Final</title>
-  <meta http-equiv="refresh" content="5;url={{ url_for('index') }}">
-  <style>
-    body { font-family: Arial, sans-serif; text-align: center; margin-top: 100px; }
-    p { font-size: 18px; color: #444; }
-  </style>
-</head>
-<body>
-  <h2>✅ File Securely Erased</h2>
-  <p>Your file has been deleted from our system after download.</p>
-  <p>If your download failed (e.g. browser closed, poor internet), the file is still erased.</p>
-  <p>🔒 For security, please ask the sender to share again if needed.</p>
-  <p>⏳ Redirecting you back to Home in 5 seconds...</p>
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block title %}BlackFile - Final{% endblock %}
+
+{% block content %}
+<div class="card" style="text-align: center;">
+    <div class="success-icon" style="background-color: var(--success-color); margin-bottom: 1rem;">
+      <i class="fas fa-check"></i>
+    </div>
+    <h2 style="font-size: 2rem; color: var(--success-color);">File Securely Erased</h2>
+    <p style="color: var(--text-secondary-color); margin-top: 1rem;">Your file has been deleted from our system after download.</p>
+    <p style="color: var(--text-secondary-color); margin-top: 0.5rem;">For security, please ask the sender to share again if needed.</p>
+    <p style="color: var(--text-secondary-color); margin-top: 2rem;">⏳ Redirecting you back to Home in 5 seconds...</p>
+</div>
+<script>
+    setTimeout(function(){
+      window.location.href = "{{ url_for('index') }}";
+    }, 5000);
+</script>
+{% endblock %}

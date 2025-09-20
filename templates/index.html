@@ -1,45 +1,82 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>BlackFile – Upload</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-  <div class="card">
-    <h1>⬆️ Upload Securely</h1>
-    <p class="subtitle">Your file will be encrypted with AES-256 and shared securely.</p>
+{% extends "base.html" %}
 
-    <form id="uploadForm" method="POST" action="{{ url_for('upload') }}" enctype="multipart/form-data">
-      <label for="email">Recipient Email</label>
-      <input type="email" id="email" name="email" required>
+{% block title %}Secure File Transfer - BlackFile{% endblock %}
 
-      <label for="expiry">Expiry (minutes)</label>
-      <select id="expiry" name="expiry">
-        {% for m in allowed_expiry %}
-        <option value="{{ m }}">{{ m }}</option>
-        {% endfor %}
-      </select>
-
-      <label>File</label>
-      <div class="drop" id="drop">
-        <span id="dropText">📂 Drag & Drop your file here or <b>Click</b> to choose</span>
-        <input type="file" id="file" name="file" required>
-      </div>
-
-      <button type="submit" id="submitBtn">🔒 Upload Securely</button>
-    </form>
-  </div>
-
-  <!-- Overlay -->
-  <div class="overlay hidden" id="overlay">
-    <div class="overlay-card">
-      <h2>🔒 Secure Processing</h2>
-      <div class="steps" id="stepsContainer"></div>
-      <div class="loader"></div>
+{% block content %}
+<div class="login-card">
+    <div class="login-header">
+        <div class="login-icon">
+            <i class="fas fa-shield-alt"></i>
+        </div>
+        <h2>Secure File Transfer</h2>
+        <p>Send files with end-to-end encryption</p>
+        <div id="netBadge" class="net-badge" style="display:none;" aria-live="polite">
+            <i class="fas fa-circle-notch fa-spin"></i> Submitting...
+        </div>
     </div>
-  </div>
 
-  <script src="{{ url_for('static', filename='app.js') }}"></script>
-</body>
-</html>
+    <form action="{{ url_for('upload') }}" method="POST" enctype="multipart/form-data" class="modern-form" id="uploadForm">
+        <div class="form-grid">
+            <div class="form-left">
+                <div class="form-group modern-field">
+                    <label for="email"><i class="fas fa-envelope"></i> Recipient's Email</label>
+                    <input type="email" id="email" name="email" placeholder="Enter recipient's email" required>
+                    <p class="field-hint">We only use this to send the secure link. We don’t store addresses after delivery.</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="file"><i class="fas fa-cloud-upload-alt"></i> File to Upload</label>
+                    <div class="modern-upload-area" id="fileUploadArea" role="button" tabindex="0" aria-label="Upload file by clicking or dropping here">
+                        <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                        <p class="upload-title">Drag & drop your file here or click to browse</p>
+                        <p class="field-hint">Max size ~100MB • Common types: PDF, DOCX, XLSX, PNG, JPG, ZIP • Auto‑delete on expiry/first download</p>
+                        <input type="file" id="file" name="file" required hidden>
+                        <div class="file-info" id="fileInfo" style="display: none; margin-top: 1rem;">
+                            <div class="success-checkmark" style="display: none;">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="success-message" id="fileName" aria-live="polite"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-right">
+                <div class="form-group modern-field">
+                    <label for="expiry"><i class="fas fa-clock"></i> Expires After
+                        <span class="info-tip" tabindex="0" aria-label="Links auto-delete after expiry or first download">
+                            <i class="fas fa-info-circle"></i>
+                            <span class="tip-bubble">Auto-deletes after expiry or first download</span>
+                        </span>
+                    </label>
+                    <select id="expiry" name="expiry" required>
+                        {% for minutes in allowed_expiry %}
+                            <option value="{{ minutes }}" {% if minutes == 10 %}selected{% endif %}>
+                                {{ minutes }} minute{% if minutes != 1 %}s{% endif %}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <p class="field-hint">Links expire automatically to protect your privacy.</p>
+                </div>
+                
+                <div class="security-info">
+                    <h4><i class="fas fa-shield-alt"></i> Security Features</h4>
+                    <ul class="security-list">
+                        <li><i class="fas fa-check"></i> AES-256 Encryption</li>
+                        <li><i class="fas fa-check"></i> Auto-Delete After Download</li>
+                        <li><i class="fas fa-check"></i> Two-Factor Authentication</li>
+                        <li><i class="fas fa-check"></i> No Account Required</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn-primary" id="submitBtn">
+                <i class="fas fa-paper-plane"></i> Encrypt & Send Securely
+            </button>
+        </div>
+    </form>
+
+</div>
+{% endblock %}

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}BlackFile - Secure File Transfer{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="theme-color" content="#0f172a">
+</head>
+<body>
+    <div class="background-overlay"></div>
+    <div class="bg-animation">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+    <div class="floating-files">
+        <!-- Main file particles -->
+        <i class="file-particle fas fa-file-alt"></i>
+        <i class="file-particle fas fa-file-pdf"></i>
+        <i class="file-particle fas fa-file-word"></i>
+        <i class="file-particle fas fa-file-image"></i>
+        <i class="file-particle fas fa-file-archive"></i>
+        <i class="file-particle fas fa-file-code"></i>
+        <i class="file-particle fas fa-file-excel"></i>
+        <i class="file-particle fas fa-file-powerpoint"></i>
+        <i class="file-particle fas fa-file-video"></i>
+        <i class="file-particle fas fa-file-audio"></i>
+        
+        <!-- Additional particles for fuller coverage -->
+        <i class="file-particle fas fa-folder"></i>
+        <i class="file-particle fas fa-file-csv"></i>
+        <i class="file-particle fas fa-file-text"></i>
+        <i class="file-particle fas fa-file-contract"></i>
+        <i class="file-particle fas fa-file-download"></i>
+        <i class="file-particle fas fa-file-upload"></i>
+        <i class="file-particle fas fa-database"></i>
+        <i class="file-particle fas fa-cloud"></i>
+        <i class="file-particle fas fa-server"></i>
+        <i class="file-particle fas fa-hdd"></i>
+        
+        <!-- Extra layer for more density -->
+        <i class="file-particle fas fa-file-alt extra-layer"></i>
+        <i class="file-particle fas fa-file-pdf extra-layer"></i>
+        <i class="file-particle fas fa-file-word extra-layer"></i>
+        <i class="file-particle fas fa-file-image extra-layer"></i>
+        <i class="file-particle fas fa-file-code extra-layer"></i>
+        <i class="file-particle fas fa-folder extra-layer"></i>
+        <i class="file-particle fas fa-cloud extra-layer"></i>
+        <i class="file-particle fas fa-database extra-layer"></i>
+    </div>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo-container">
+                <div class="logo-brand">
+                    <i class="fas fa-shield-alt logo-icon"></i>
+                    <h1 class="logo-text">BlackFile</h1>
+                </div>
+            </div>
+            <button class="mobile-menu-btn">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </button>
+            <ul class="nav-menu">
+                <li class="nav-item"><a href="{{ url_for('index') }}" class="nav-link"><i class="fas fa-home"></i> Home</a></li>
+                <li class="nav-item"><a href="{{ url_for('index') }}#features" class="nav-link"><i class="fas fa-star"></i> Features</a></li>
+                <li class="nav-item"><a href="{{ url_for('index') }}#about" class="nav-link"><i class="fas fa-info-circle"></i> About</a></li>
+                <li class="nav-item"><a href="{{ url_for('index') }}#contact" class="nav-link"><i class="fas fa-envelope"></i> Contact</a></li>
+                <li class="nav-item"><button id="themeToggle" class="nav-link theme-toggle" title="Toggle Theme"><i class="fas fa-moon"></i> <span class="theme-text">Dark</span></button></li>
+                <li class="nav-item"><button id="motionToggle" class="nav-link theme-toggle" title="Toggle Motion"><i class="fas fa-wind"></i> <span class="motion-text">Calm</span></button></li>
+                <li class="nav-item"><button id="soundToggle" class="nav-link theme-toggle" title="Toggle Sound"><i class="fas fa-volume-mute"></i> <span class="sound-text">Sound Off</span></button></li>
+                <li class="nav-item"><a href="{{ url_for('index') }}" class="nav-link btn-nav"><i class="fas fa-paper-plane"></i> Send File</a></li>
+            </ul>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <main>
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="flash-messages">
+                        {% for message in messages %}
+                            <div class="flash-message">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </main>
+
+        <footer>
+            <div class="footer-wave" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 100" preserveAspectRatio="none" focusable="false">
+                    <path fill="rgba(15, 23, 42, 0.8)" fill-opacity="1" d="M0,32L60,42.7C120,53,240,75,360,74.7C480,75,600,53,720,48C840,43,960,53,1080,58.7C1200,64,1320,64,1380,64L1440,64L1440,100L1380,100C1320,100,1200,100,1080,100C960,100,840,100,720,100C600,100,480,100,360,100C240,100,120,100,60,100L0,100Z"></path>
+                </svg>
+            </div>
+            <div class="footer-container">
+                <div class="footer-section">
+                    <h4>BlackFile</h4>
+                    <p>Secure, encrypted file transfers with automatic deletion and two-factor authentication.</p>
+                    <div class="social-links">
+                        <a href="#" class="social-icon" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-icon" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+                        <a href="#" class="social-icon" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="social-icon" aria-label="GitHub"><i class="fab fa-github"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul class="footer-links">
+                        <li><a href="{{ url_for('index') }}"><i class="fas fa-chevron-right"></i> Home</a></li>
+                        <li><a href="{{ url_for('index') }}#features"><i class="fas fa-chevron-right"></i> Features</a></li>
+                        <li><a href="{{ url_for('index') }}#about"><i class="fas fa-chevron-right"></i> About</a></li>
+                        <li><a href="{{ url_for('index') }}#contact"><i class="fas fa-chevron-right"></i> Contact</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Security Features</h4>
+                    <div class="security-badges">
+                        <div class="security-badge">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>AES-256 Encryption</span>
+                        </div>
+                        <div class="security-badge">
+                            <i class="fas fa-trash-alt"></i>
+                            <span>Auto-Delete</span>
+                        </div>
+                        <div class="security-badge">
+                            <i class="fas fa-key"></i>
+                            <span>Two-Factor Auth</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Contact Us</h4>
+                    <p class="contact-info"><i class="fas fa-envelope"></i> support@blackfile.com</p>
+                    <p class="contact-info"><i class="fas fa-phone"></i> +1 (555) 123-4567</p>
+                    <p class="contact-info"><i class="fas fa-map-marker-alt"></i> 123 Security St, Cyber City</p>
+                </div>
+            </div>
+
+            <div class="brand-bar" aria-label="Brand information">
+                <div class="brand-left"><i class="fas fa-shield-alt"></i> Secure by <strong>BlackFile</strong></div>
+                <div class="brand-right">End‑to‑End Encryption • Zero Knowledge</div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2023 BlackFile. All rights reserved. | <a href="#">Privacy</a> | <a href="#">Terms</a></p>
+            </div>
+        </footer>
+    </div>
+    
+    <div id="overlay" class="overlay">
+        <div class="overlay-card">
+            <h2 class="processing-title">Processing...</h2>
+            <div id="stepsContainer" class="steps"></div>
+            <div class="loader"></div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

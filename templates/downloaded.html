@@ -1,25 +1,26 @@
-<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>BlackFile — Download</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-  <div class="card">
-    <h1>Preparing your download…</h1>
-    <p class="subtitle">Your file will start downloading automatically. For security, it will be erased immediately afterward.</p>
-    <div class="loader"></div>
-    <p class="hint">You’ll be redirected to a confirmation page in a few seconds.</p>
-  </div>
+{% extends "base.html" %}
 
-  <!-- Fire the download in a hidden iframe so this page can redirect -->
-  <iframe src="{{ url_for('download', token=token) }}" style="display:none;" sandbox></iframe>
+{% block title %}BlackFile - Download{% endblock %}
 
-  <script>
-    setTimeout(function(){
-      window.location = "{{ url_for('final') }}";
-    }, 5000);
-  </script>
-</body>
-</html>
+{% block content %}
+<div class="card" style="text-align: center;">
+    <h1 style="font-size: 2rem;">Preparing your download...</h1>
+    <p style="color: var(--text-secondary-color); margin-top: 1rem;">Your file will start downloading automatically. For security, it will be erased immediately afterward.</p>
+    <div class="loader">
+        <div class="loader-icon">
+            <i class="fas fa-lock-open"></i>
+        </div>
+    </div>
+    <div class="loader-progress"></div>
+    <p class="loader-text">Decrypting and preparing your file...</p>
+    <p style="color: var(--text-secondary-color); margin-top: 1rem;">You'll be redirected to a confirmation page in a few seconds.</p>
+</div>
+
+<iframe src="{{ url_for('download', token=token) }}" style="display:none;" sandbox></iframe>
+
+<script>
+  setTimeout(function(){
+    window.location = "{{ url_for('final') }}";
+  }, 5000);
+</script>
+{% endblock %}

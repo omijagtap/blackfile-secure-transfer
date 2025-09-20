@@ -1,0 +1,179 @@
+{% extends "modern-base.html" %}
+
+{% block title %}Page Not Found - BlackFile{% endblock %}
+
+{% block content %}
+<!-- 404 Error Section -->
+<section class="hero-section">
+    <div class="text-center">
+        <div style="font-size: 8rem; margin-bottom: 1rem; line-height: 1;">
+            <span style="background: var(--error); background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 900;">
+                404
+            </span>
+        </div>
+        <h1 style="color: var(--error);">Page Not Found</h1>
+        <p class="hero-subtitle">
+            The page you're looking for doesn't exist or has been moved
+        </p>
+    </div>
+</section>
+
+<!-- Error Details -->
+<section class="mb-4">
+    <div class="glass-card super-glass" style="max-width: 600px; margin: 0 auto; text-align: center;">
+        <div class="alert alert-error mb-4">
+            <i class="fas fa-exclamation-triangle"></i>
+            <div>
+                <strong>Oops!</strong> We couldn't find what you were looking for.
+            </div>
+        </div>
+        
+        <div class="mb-4">
+            <h3>What happened?</h3>
+            <p class="text-muted">This could happen for several reasons:</p>
+            
+            <div class="text-left mt-3" style="display: inline-block;">
+                <div class="d-flex align-center gap-2 mb-2">
+                    <i class="fas fa-link text-warning"></i>
+                    <span>The download link may have expired</span>
+                </div>
+                <div class="d-flex align-center gap-2 mb-2">
+                    <i class="fas fa-trash-alt text-error"></i>
+                    <span>The file may have already been downloaded and deleted</span>
+                </div>
+                <div class="d-flex align-center gap-2 mb-2">
+                    <i class="fas fa-keyboard text-info"></i>
+                    <span>There might be a typo in the URL</span>
+                </div>
+                <div class="d-flex align-center gap-2">
+                    <i class="fas fa-shield-alt text-success"></i>
+                    <span>The page may have been moved for security reasons</span>
+                </div>
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a href="{{ url_for('index') }}" class="btn btn-primary">
+                <i class="fas fa-home"></i> Go Home
+            </a>
+            <button onclick="window.history.back()" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Go Back
+            </button>
+            <button onclick="window.location.reload()" class="btn btn-secondary">
+                <i class="fas fa-refresh"></i> Refresh
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- Help Section -->
+<section class="mb-4">
+    <div class="glass-card" style="max-width: 800px; margin: 0 auto;">
+        <div class="text-center mb-4">
+            <h3>Need Help?</h3>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+            <div class="glass" style="padding: 1.5rem; text-align: center;">
+                <i class="fas fa-clock" style="font-size: 2rem; color: var(--warning); margin-bottom: 1rem;"></i>
+                <h4>Link Expired?</h4>
+                <p class="text-sm text-muted">Download links expire automatically for security. Ask the sender to create a new link.</p>
+            </div>
+            
+            <div class="glass" style="padding: 1.5rem; text-align: center;">
+                <i class="fas fa-download" style="font-size: 2rem; color: var(--success); margin-bottom: 1rem;"></i>
+                <h4>File Downloaded?</h4>
+                <p class="text-sm text-muted">Files are automatically deleted after download. This ensures maximum security and privacy.</p>
+            </div>
+            
+            <div class="glass" style="padding: 1.5rem; text-align: center;">
+                <i class="fas fa-paper-plane" style="font-size: 2rem; color: var(--primary-solid); margin-bottom: 1rem;"></i>
+                <h4>Send New File</h4>
+                <p class="text-sm text-muted">Create a new secure file transfer with military-grade encryption and automatic deletion.</p>
+                <a href="{{ url_for('index') }}" class="btn btn-primary btn-sm mt-2">
+                    Send File
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Security Notice -->
+<section class="mb-4">
+    <div class="glass-card" style="max-width: 600px; margin: 0 auto;">
+        <div class="alert alert-info">
+            <i class="fas fa-shield-alt"></i>
+            <div>
+                <strong>Security First:</strong> BlackFile automatically removes files and invalidates links for your protection. This 404 error might actually be a good sign that our security measures are working properly!
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add easter egg - Konami code
+    let konamiCode = [];
+    const konamiSequence = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'KeyB', 'KeyA'];
+    
+    document.addEventListener('keydown', function(e) {
+        konamiCode.push(e.code);
+        
+        if (konamiCode.length > konamiSequence.length) {
+            konamiCode.shift();
+        }
+        
+        if (JSON.stringify(konamiCode) === JSON.stringify(konamiSequence)) {
+            showEasterEgg();
+        }
+    });
+    
+    function showEasterEgg() {
+        const body = document.body;
+        body.style.animation = 'rainbow 2s infinite';
+        
+        showNotification('🎉 Konami Code activated! You found the easter egg!', 'success', 5000);
+        
+        // Add rainbow animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes rainbow {
+                0% { filter: hue-rotate(0deg); }
+                25% { filter: hue-rotate(90deg); }
+                50% { filter: hue-rotate(180deg); }
+                75% { filter: hue-rotate(270deg); }
+                100% { filter: hue-rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        setTimeout(() => {
+            body.style.animation = '';
+            document.head.removeChild(style);
+        }, 10000);
+    }
+    
+    // Auto-redirect to home after 30 seconds
+    let countdown = 30;
+    const countdownInterval = setInterval(() => {
+        countdown--;
+        if (countdown <= 0) {
+            clearInterval(countdownInterval);
+            showNotification('Auto-redirecting to homepage...', 'info', 2000);
+            setTimeout(() => {
+                window.location.href = '{{ url_for("index") }}';
+            }, 2000);
+        }
+    }, 1000);
+    
+    // Cancel auto-redirect on user interaction
+    ['click', 'keydown', 'scroll'].forEach(event => {
+        document.addEventListener(event, () => {
+            clearInterval(countdownInterval);
+        }, { once: true });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,883 @@
+{% extends "modern-base.html" %}
+
+{% block title %}File Verification - BlackFile{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Enhanced Verification Page Styles */
+.verification-form-container {
+    animation: containerFadeIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.verification-steps {
+    animation: stepsSlideIn 0.6s ease-out 0.2s both;
+}
+
+.step-item.active .step-circle {
+    animation: pulseGlow 2s ease-in-out infinite alternate;
+}
+
+/* Enhanced OTP Input */
+.otp-input {
+    pointer-events: auto !important;
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+    user-select: text !important;
+}
+
+.otp-input:focus {
+    outline: none;
+    border-color: var(--accent-solid) !important;
+    box-shadow: 
+        0 0 0 4px rgba(99, 179, 237, 0.3), 
+        0 8px 35px rgba(99, 179, 237, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    background: rgba(99, 179, 237, 0.08) !important;
+    transform: scale(1.05) translateY(-2px);
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.otp-input:focus + .input-glow {
+    opacity: 1;
+    animation: inputShine 2s ease-in-out infinite;
+}
+
+/* Enhanced Secret Key Input */
+.secret-input {
+    pointer-events: auto !important;
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+    user-select: text !important;
+}
+
+.secret-input:focus {
+    outline: none;
+    border-color: var(--secondary-solid) !important;
+    box-shadow: 
+        0 0 0 4px rgba(113, 128, 150, 0.2), 
+        0 6px 25px rgba(113, 128, 150, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+    background: rgba(113, 128, 150, 0.08) !important;
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+}
+
+/* Enhanced Submit Button */
+.verify-submit-btn:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 
+        0 20px 50px rgba(99, 179, 237, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.verify-submit-btn:hover > div {
+    left: 100%;
+}
+
+.verify-submit-btn:active {
+    transform: translateY(-1px) scale(1);
+    transition: all 0.1s ease;
+}
+
+/* Input Section Animations */
+.otp-section {
+    animation: sectionSlideIn 0.6s ease-out 0.4s both;
+}
+
+.secret-key-section {
+    animation: sectionSlideIn 0.6s ease-out 0.6s both;
+}
+
+.submit-section {
+    animation: sectionSlideIn 0.6s ease-out 0.8s both;
+}
+
+/* Keyframe Animations */
+@keyframes containerFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes stepsSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes sectionSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes pulseGlow {
+    0% {
+        box-shadow: 0 4px 15px rgba(99, 179, 237, 0.4);
+    }
+    100% {
+        box-shadow: 0 4px 25px rgba(99, 179, 237, 0.7), 0 0 30px rgba(99, 179, 237, 0.4);
+    }
+}
+
+@keyframes inputShine {
+    0% {
+        transform: translateX(-100%) skewX(-15deg);
+    }
+    100% {
+        transform: translateX(200%) skewX(-15deg);
+    }
+}
+
+@keyframes inputPulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 8px 25px rgba(99, 179, 237, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+    50% {
+        transform: scale(1.02);
+        box-shadow: 0 12px 35px rgba(99, 179, 237, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 8px 25px rgba(99, 179, 237, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+}
+
+/* Responsive Enhancements */
+@media (max-width: 640px) {
+    .verification-form-container {
+        padding: 2rem 1.5rem;
+        margin: 0 1rem;
+    }
+    
+    .otp-input {
+        font-size: 1.5rem !important;
+        width: 180px !important;
+        height: 60px !important;
+    }
+    
+    .verify-submit-btn {
+        min-width: 240px !important;
+        padding: 1rem 2rem !important;
+        font-size: 1rem !important;
+    }
+    
+    .verification-steps {
+        margin-bottom: 2rem;
+    }
+    
+    .step-circle {
+        width: 40px !important;
+        height: 40px !important;
+    }
+    
+    .step-circle i {
+        font-size: 1rem !important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<section class="hero-section">
+    <div class="text-center">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">
+            <i class="fas fa-shield-alt" style="background: var(--primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; filter: drop-shadow(0 0 15px rgba(102, 126, 234, 0.4));"></i>
+        </div>
+        <h1>Secure File Access</h1>
+        <p class="hero-subtitle">
+            Enter your verification details to securely download your file
+        </p>
+    </div>
+</section>
+
+<!-- Main Content -->
+<section class="mb-4">
+    <div class="glass-card super-glass" style="max-width: 600px; margin: 0 auto;">
+        
+        {% if expired %}
+        <!-- Expired State -->
+        <div class="text-center">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">
+                <i class="fas fa-clock" style="color: var(--error);"></i>
+            </div>
+            <h2 style="color: var(--error);">Link Expired</h2>
+            <div class="alert alert-error mb-4">
+                <i class="fas fa-exclamation-triangle"></i>
+                <div>
+                    This secure download link has expired for your protection. The file has been automatically deleted from our servers.
+                </div>
+            </div>
+            <a href="{{ url_for('index') }}" class="btn btn-primary">
+                <i class="fas fa-home"></i> Go to Homepage
+            </a>
+        </div>
+        
+        {% elif already_erased %}
+        <!-- Already Used State -->
+        <div class="text-center">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">
+                <i class="fas fa-check-circle" style="color: var(--success);"></i>
+            </div>
+            <h2 style="color: var(--success);">File Already Downloaded</h2>
+            <div class="alert alert-info mb-4">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    This file has already been downloaded and has been permanently deleted from our servers for security reasons.
+                </div>
+            </div>
+            <a href="{{ url_for('index') }}" class="btn btn-primary">
+                <i class="fas fa-home"></i> Go to Homepage
+            </a>
+        </div>
+        
+        {% elif locked %}
+        <!-- Locked State -->
+        <div class="text-center">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">
+                <i class="fas fa-lock" style="color: var(--warning);"></i>
+            </div>
+            <h2 style="color: var(--warning);">Access Temporarily Locked</h2>
+            <div class="alert alert-warning mb-4">
+                <i class="fas fa-exclamation-triangle"></i>
+                <div>
+                    Too many failed attempts detected. For security reasons, access has been temporarily locked.
+                    <br><br>
+                    <strong>Try again in {{ minutes_left }} minute{{ 's' if minutes_left != 1 else '' }}.</strong>
+                </div>
+            </div>
+            <div class="mb-4">
+                <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: var(--radius-md); padding: 1rem;">
+                    <h4><i class="fas fa-shield-alt"></i> Security Notice</h4>
+                    <p class="text-sm mb-0">This lockout protects your file from unauthorized access attempts. The file remains secure and will be available once the lockout period expires.</p>
+                </div>
+            </div>
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                <i class="fas fa-home"></i> Go to Homepage
+            </a>
+        </div>
+        
+        {% else %}
+        <!-- Normal Verification Form -->
+        <div class="text-center mb-4">
+            <div style="font-size: 2.5rem; margin-bottom: 1rem;">
+                <i class="fas fa-user-shield" style="background: var(--accent); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; filter: drop-shadow(0 0 10px rgba(99, 179, 237, 0.3));"></i>
+            </div>
+            <h2 style="margin-bottom: 0.5rem;">Verify Your Identity</h2>
+            <p class="text-muted" style="font-size: 0.9rem;">Two-factor authentication required for secure access</p>
+        </div>
+
+        <!-- Expiry Timer -->
+        <div class="glass mb-4" id="timerAlert" style="display: none; padding: 1rem; text-align: center; border: 1px solid rgba(245, 158, 11, 0.3); background: rgba(245, 158, 11, 0.1);">
+            <i class="fas fa-clock" style="color: var(--warning); margin-right: 0.5rem;"></i>
+            <strong style="color: var(--warning);">Time Remaining:</strong> 
+            <span id="countdown" style="font-family: 'JetBrains Mono', monospace; font-weight: bold; color: var(--warning); font-size: 1.1rem;">--:--</span>
+        </div>
+
+        <!-- Error Messages -->
+        {% if error %}
+        <div class="alert alert-error mb-4">
+            <i class="fas fa-exclamation-triangle"></i>
+            <div>{{ error }}</div>
+        </div>
+        {% endif %}
+
+        {% if wrong_otp %}
+        <div class="alert alert-error mb-4">
+            <i class="fas fa-key"></i>
+            <div>
+                <strong>Invalid OTP.</strong> Please check the code sent to your email.
+                {% if attempts_remaining %}
+                <br>Attempts remaining: <strong>{{ attempts_remaining }}</strong>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if wrong_secret %}
+        <div class="alert alert-error mb-4">
+            <i class="fas fa-shield-alt"></i>
+            <div>
+                <strong>Invalid Secret Key.</strong> Please verify you have the correct encryption key from the sender.
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Enhanced Verification Form -->
+        <form method="POST" id="verifyForm" style="max-width: 550px; margin: 0 auto;">
+            <!-- Step Indicator -->
+            <div class="verification-steps" style="display: flex; justify-content: center; margin-bottom: 3rem; position: relative;">
+                <div class="step-item active" style="display: flex; flex-direction: column; align-items: center; flex: 1; position: relative;">
+                    <div class="step-circle" style="width: 50px; height: 50px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 0.5rem; box-shadow: 0 4px 15px rgba(99, 179, 237, 0.4);">
+                        <i class="fas fa-key" style="color: white; font-size: 1.2rem;"></i>
+                    </div>
+                    <span style="font-size: 0.8rem; color: var(--accent-solid); font-weight: 600;">Email Code</span>
+                </div>
+                <div class="step-connector" style="position: absolute; top: 25px; left: 50%; right: 0; height: 2px; background: linear-gradient(90deg, var(--accent-solid) 0%, rgba(113, 128, 150, 0.3) 100%); transform: translateY(-50%); z-index: 1;"></div>
+                <div class="step-item" style="display: flex; flex-direction: column; align-items: center; flex: 1; position: relative;">
+                    <div class="step-circle" style="width: 50px; height: 50px; background: rgba(113, 128, 150, 0.2); border: 2px solid rgba(113, 128, 150, 0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 0.5rem;">
+                        <i class="fas fa-shield-alt" style="color: var(--text-muted); font-size: 1.2rem;"></i>
+                    </div>
+                    <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Secret Key</span>
+                </div>
+            </div>
+
+                <!-- Modern Form Container -->
+            <div class="verification-form-container" style="background: rgba(255, 255, 255, 0.04); backdrop-filter: blur(30px); border: 2px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 3rem 2.5rem; position: relative; overflow: visible; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);">
+                <!-- Decorative elements -->
+                <div style="position: absolute; top: -50px; right: -50px; width: 100px; height: 100px; background: radial-gradient(circle, rgba(99, 179, 237, 0.1) 0%, transparent 70%); border-radius: 50%; pointer-events: none; z-index: 0;"></div>
+                <div style="position: absolute; bottom: -30px; left: -30px; width: 60px; height: 60px; background: radial-gradient(circle, rgba(113, 128, 150, 0.1) 0%, transparent 70%); border-radius: 50%; pointer-events: none; z-index: 0;"></div>
+                
+                <!-- OTP Input Section -->
+                <div class="otp-section" style="margin-bottom: 2.5rem; text-align: center;">
+                    <div class="input-header" style="margin-bottom: 1.5rem;">
+                        <div style="display: inline-flex; align-items: center; background: rgba(99, 179, 237, 0.1); padding: 0.5rem 1rem; border-radius: 12px; margin-bottom: 0.75rem;">
+                            <i class="fas fa-key" style="color: var(--accent-solid); margin-right: 0.5rem; font-size: 1.1rem;"></i>
+                            <span style="color: var(--accent-solid); font-weight: 600; font-size: 0.9rem;">EMAIL VERIFICATION</span>
+                        </div>
+                        <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-primary);">Enter 6-Digit Code</h3>
+                    </div>
+                    
+                    <!-- Enhanced OTP Input -->
+                    <div class="otp-input-container" style="position: relative; display: inline-block;">
+                        <input 
+                            type="text" 
+                            id="otp" 
+                            name="otp" 
+                            class="otp-input" 
+                            placeholder="123-456"
+                            maxlength="7"
+                            pattern="[0-9]{3}-[0-9]{3}"
+                            required
+                            autocomplete="one-time-code"
+                            inputmode="numeric"
+                            style="
+                                text-align: center;
+                                font-family: 'JetBrains Mono', monospace;
+                                font-size: 1.8rem;
+                                font-weight: 600;
+                                letter-spacing: 0.3em;
+                                width: 200px;
+                                height: 70px;
+                                background: rgba(255, 255, 255, 0.1);
+                                border: 3px solid rgba(99, 179, 237, 0.3);
+                                border-radius: 16px;
+                                color: var(--text-primary);
+                                transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+                                box-shadow: 0 8px 25px rgba(99, 179, 237, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+                                cursor: text;
+                                z-index: 10;
+                                position: relative;
+                            "
+                        >
+                        <!-- Input glow effect -->
+                        <div class="input-glow" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; border-radius: 16px; background: linear-gradient(45deg, transparent, rgba(99, 179, 237, 0.1), transparent); opacity: 0; transition: opacity 0.3s ease; pointer-events: none; z-index: 1;"></div>
+                    </div>
+                    <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-muted); line-height: 1.4;">
+                        <i class="fas fa-envelope" style="margin-right: 0.5rem; color: var(--accent-solid);"></i>
+                        Check your email for the verification code
+                    </p>
+                    <button type="button" onclick="document.getElementById('otp').focus(); document.getElementById('otp').click();" style="margin-top: 0.5rem; padding: 0.25rem 0.75rem; font-size: 0.8rem; background: rgba(99, 179, 237, 0.1); border: 1px solid rgba(99, 179, 237, 0.3); border-radius: 8px; color: var(--accent-solid); cursor: pointer;">
+                        <i class="fas fa-mouse-pointer" style="margin-right: 0.25rem;"></i>Click to Focus Input
+                    </button>
+                </div>
+
+                <!-- Divider -->
+                <div style="position: relative; margin: 2rem 0; text-align: center;">
+                    <div style="height: 1px; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);"></div>
+                    <span style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: rgba(255, 255, 255, 0.04); padding: 0 1rem; font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.1em;">AND</span>
+                </div>
+
+                <!-- Secret Key Section -->
+                <div class="secret-key-section" style="margin-bottom: 2.5rem; text-align: center;">
+                    <div class="input-header" style="margin-bottom: 1.5rem;">
+                        <div style="display: inline-flex; align-items: center; background: rgba(113, 128, 150, 0.1); padding: 0.5rem 1rem; border-radius: 12px; margin-bottom: 0.75rem;">
+                            <i class="fas fa-shield-alt" style="color: var(--secondary-solid); margin-right: 0.5rem; font-size: 1.1rem;"></i>
+                            <span style="color: var(--secondary-solid); font-weight: 600; font-size: 0.9rem;">ENCRYPTION KEY</span>
+                        </div>
+                        <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-primary);">Secret Authentication Key</h3>
+                    </div>
+                    
+                    <!-- Enhanced Secret Key Input -->
+                    <div class="secret-input-container" style="position: relative;">
+                        <textarea 
+                            id="secret_key" 
+                            name="secret_key" 
+                            class="secret-input" 
+                            placeholder="Paste your secret key here..."
+                            required
+                            rows="3"
+                            style="
+                                font-family: 'JetBrains Mono', monospace;
+                                font-size: 0.9rem;
+                                width: 100%;
+                                max-width: 400px;
+                                background: rgba(255, 255, 255, 0.08);
+                                border: 2px solid rgba(113, 128, 150, 0.3);
+                                border-radius: 16px;
+                                color: var(--text-primary);
+                                padding: 1.25rem;
+                                resize: none;
+                                transition: all 0.3s ease;
+                                box-shadow: 0 4px 15px rgba(113, 128, 150, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+                                line-height: 1.5;
+                                cursor: text;
+                                z-index: 10;
+                                position: relative;
+                            "
+                        ></textarea>
+                    </div>
+                    <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-muted); line-height: 1.4;">
+                        <i class="fas fa-info-circle" style="margin-right: 0.5rem; color: var(--info);"></i>
+                        This key was shared separately by the sender
+                    </p>
+                    <button type="button" onclick="document.getElementById('secret_key').focus(); document.getElementById('secret_key').click();" style="margin-top: 0.5rem; padding: 0.25rem 0.75rem; font-size: 0.8rem; background: rgba(113, 128, 150, 0.1); border: 1px solid rgba(113, 128, 150, 0.3); border-radius: 8px; color: var(--secondary-solid); cursor: pointer;">
+                        <i class="fas fa-mouse-pointer" style="margin-right: 0.25rem;"></i>Click to Focus Input
+                    </button>
+                </div>
+            </div>
+
+            <!-- Enhanced Submit Section -->
+            <div class="submit-section" style="text-align: center; margin-top: 2rem;">
+                <div style="margin-bottom: 1.5rem;">
+                    <div style="display: inline-flex; align-items: center; background: rgba(16, 185, 129, 0.1); padding: 0.5rem 1rem; border-radius: 12px; margin-bottom: 0.75rem;">
+                        <i class="fas fa-shield-check" style="color: var(--success); margin-right: 0.5rem; font-size: 1rem;"></i>
+                        <span style="color: var(--success); font-weight: 600; font-size: 0.85rem;">SECURE AUTHENTICATION</span>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-lg verify-submit-btn" id="verifyBtn" style="
+                    padding: 1.25rem 3rem;
+                    font-size: 1.15rem;
+                    font-weight: 700;
+                    border-radius: 20px;
+                    background: linear-gradient(135deg, var(--accent-solid) 0%, #3b82f6 100%);
+                    border: none;
+                    min-width: 280px;
+                    position: relative;
+                    overflow: hidden;
+                    box-shadow: 
+                        0 12px 35px rgba(99, 179, 237, 0.4),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+                    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+                    text-transform: uppercase;
+                    letter-spacing: 0.05em;
+                ">
+                    <!-- Button shine effect -->
+                    <div style="position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent); transition: left 0.6s ease;"></div>
+                    
+                    <i class="fas fa-download" style="margin-right: 1rem; font-size: 1.1rem;"></i>
+                    <span>Verify & Download</span>
+                    <i class="fas fa-arrow-right" style="margin-left: 1rem; font-size: 0.9rem; opacity: 0.8;"></i>
+                </button>
+                
+                <p style="margin-top: 1.5rem; font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">
+                    <i class="fas fa-lock" style="margin-right: 0.5rem; color: var(--success);"></i>
+                    Your file will be decrypted and downloaded securely
+                </p>
+            </div>
+        </form>
+
+        <!-- Help Section -->
+        <div class="mt-4" style="max-width: 600px; margin: 2rem auto 0;">
+            <div class="glass" style="padding: 2rem; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.08);">
+                <h4 style="text-align: center; margin-bottom: 1.5rem;">
+                    <i class="fas fa-question-circle" style="color: var(--info); margin-right: 0.5rem;"></i> 
+                    Need Help?
+                </h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-bottom: 1.5rem;">
+                    <div class="text-center">
+                        <i class="fas fa-envelope" style="font-size: 1.5rem; color: var(--warning); margin-bottom: 0.5rem;"></i>
+                        <h5 style="margin-bottom: 0.5rem;">Missing OTP?</h5>
+                        <p class="text-sm text-muted">Check your email's spam/junk folder. The verification code expires in a few minutes.</p>
+                    </div>
+                    <div class="text-center">
+                        <i class="fas fa-key" style="font-size: 1.5rem; color: var(--accent-solid); margin-bottom: 0.5rem;"></i>
+                        <h5 style="margin-bottom: 0.5rem;">No Secret Key?</h5>
+                        <p class="text-sm text-muted">Contact the person who sent you the file. They should share the encryption key through a separate channel.</p>
+                    </div>
+                </div>
+                
+                <div class="glass" style="padding: 1rem; background: rgba(99, 179, 237, 0.1); border: 1px solid rgba(99, 179, 237, 0.2); border-radius: 12px; text-align: center;">
+                    <i class="fas fa-shield-alt" style="color: var(--accent-solid); margin-right: 0.5rem;"></i>
+                    <strong style="color: var(--accent-solid);">Security Tip:</strong> 
+                    <span class="text-sm">The sender should never send the secret key and download link through the same communication method.</span>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Security Features -->
+{% if not expired and not already_erased and not locked %}
+<section class="mb-4">
+    <div class="glass-card" style="max-width: 800px; margin: 0 auto;">
+        <div class="text-center mb-4">
+            <h3>Your Security is Our Priority</h3>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem;">
+            <div class="text-center">
+                <i class="fas fa-lock" style="font-size: 2rem; color: var(--success); margin-bottom: 0.5rem;"></i>
+                <h4>End-to-End Encryption</h4>
+                <p class="text-sm text-muted">Your file is encrypted with AES-256 military-grade security</p>
+            </div>
+            <div class="text-center">
+                <i class="fas fa-key" style="font-size: 2rem; color: var(--info); margin-bottom: 0.5rem;"></i>
+                <h4>Two-Factor Auth</h4>
+                <p class="text-sm text-muted">Email OTP + Secret Key provide double protection</p>
+            </div>
+            <div class="text-center">
+                <i class="fas fa-trash-alt" style="font-size: 2rem; color: var(--warning); margin-bottom: 0.5rem;"></i>
+                <h4>Auto-Deletion</h4>
+                <p class="text-sm text-muted">Files are permanently erased after download</p>
+            </div>
+            <div class="text-center">
+                <i class="fas fa-eye-slash" style="font-size: 2rem; color: var(--accent-solid); margin-bottom: 0.5rem;"></i>
+                <h4>Zero Knowledge</h4>
+                <p class="text-sm text-muted">We never have access to your unencrypted files</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const otpInput = document.getElementById('otp');
+    const secretKeyInput = document.getElementById('secret_key');
+    const verifyForm = document.getElementById('verifyForm');
+    const verifyBtn = document.getElementById('verifyBtn');
+    
+    // Debug logging
+    console.log('Verify page loaded');
+    console.log('OTP Input found:', !!otpInput);
+    console.log('Secret Key Input found:', !!secretKeyInput);
+    
+    // Ensure inputs are accessible
+    if (otpInput) {
+        otpInput.style.pointerEvents = 'auto';
+        console.log('OTP input configured');
+    }
+    
+    if (secretKeyInput) {
+        secretKeyInput.style.pointerEvents = 'auto';
+        console.log('Secret key input configured');
+    }
+
+    // OTP input formatting with dash (123-456)
+    if (otpInput) {
+        otpInput.addEventListener('input', function(e) {
+            // Remove everything except numbers
+            let value = this.value.replace(/[^0-9]/g, '');
+            
+            // Limit to 6 digits
+            value = value.substring(0, 6);
+            
+            // Format as 123-456
+            if (value.length > 3) {
+                value = value.substring(0, 3) + '-' + value.substring(3);
+            }
+            
+            this.value = value;
+            
+            // Auto-submit when 6 digits are entered (if secret key is also filled)
+            if (value.replace('-', '').length === 6 && secretKeyInput.value.trim()) {
+                setTimeout(() => {
+                    if (validateForm(verifyForm)) {
+                        verifyForm.submit();
+                    }
+                }, 300);
+            }
+        });
+
+        // Handle paste for OTP
+        otpInput.addEventListener('paste', function(e) {
+            e.preventDefault();
+            const paste = (e.clipboardData || window.clipboardData).getData('text');
+            let numericPaste = paste.replace(/[^0-9]/g, '').substring(0, 6);
+            
+            // Format as 123-456
+            if (numericPaste.length > 3) {
+                numericPaste = numericPaste.substring(0, 3) + '-' + numericPaste.substring(3);
+            }
+            
+            this.value = numericPaste;
+            
+            // Auto-focus secret key if OTP is complete
+            if (numericPaste.replace('-', '').length === 6) {
+                secretKeyInput.focus();
+            }
+        });
+    }
+
+    // Secret key input formatting
+    if (secretKeyInput) {
+        secretKeyInput.addEventListener('paste', function(e) {
+            // Trim whitespace from pasted content
+            setTimeout(() => {
+                this.value = this.value.trim();
+            }, 10);
+        });
+
+        // Auto-resize textarea
+        secretKeyInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
+    }
+
+    // Form submission
+    if (verifyForm) {
+        verifyForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!validateForm(this)) {
+                showNotification('Please fill in all required fields.', 'error');
+                return;
+            }
+
+            // Validate OTP format (123-456)
+            const otp = otpInput.value;
+            const otpDigits = otp.replace('-', '');
+            if (!/^\d{3}-\d{3}$/.test(otp) || otpDigits.length !== 6) {
+                showNotification('Please enter a valid 6-digit OTP in format 123-456.', 'error');
+                otpInput.focus();
+                return;
+            }
+
+            // Validate secret key
+            const secretKey = secretKeyInput.value.trim();
+            if (secretKey.length < 10) {
+                showNotification('Secret key appears to be incomplete. Please verify and try again.', 'error');
+                secretKeyInput.focus();
+                return;
+            }
+
+            // Show loading state
+            setButtonLoading(verifyBtn, true);
+            
+            // Submit form
+            this.submit();
+        });
+    }
+
+    // Eye toggle removed - secret key remains password field
+
+    // Countdown timer - only show if expires_at is provided
+    {% if expires_at %}
+    const timerAlert = document.getElementById('timerAlert');
+    const expiresAtStr = '{{ expires_at }}';
+    
+    if (expiresAtStr && expiresAtStr !== 'None' && timerAlert) {
+        const expiresAt = new Date(expiresAtStr).getTime();
+        
+        if (!isNaN(expiresAt)) {
+            timerAlert.style.display = 'block';
+        
+        function updateCountdown() {
+            const now = new Date().getTime();
+            const timeLeft = expiresAt - now;
+            
+            if (timeLeft > 0) {
+                const minutes = Math.floor(timeLeft / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+                
+                document.getElementById('countdown').innerHTML = 
+                    `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                    
+                // Change color and add blinking effect
+                const countdownEl = document.getElementById('countdown');
+                const timerAlert = document.getElementById('timerAlert');
+                
+                if (timeLeft <= 1000) {
+                    // Blink when 1 second or less remains
+                    countdownEl.style.color = 'var(--error)';
+                    timerAlert.style.animation = 'pulse 0.8s ease-in-out infinite';
+                    countdownEl.style.animation = 'pulse 0.8s ease-in-out infinite';
+                } else if (minutes <= 2) {
+                    countdownEl.style.color = 'var(--error)';
+                    timerAlert.style.animation = 'none';
+                    countdownEl.style.animation = 'none';
+                } else if (minutes <= 5) {
+                    countdownEl.style.color = 'var(--warning)';
+                    timerAlert.style.animation = 'none';
+                    countdownEl.style.animation = 'none';
+                }
+            } else {
+                document.getElementById('countdown').innerHTML = 'EXPIRED';
+                document.getElementById('countdown').style.color = 'var(--error)';
+                
+                // Disable form
+                if (verifyBtn) {
+                    verifyBtn.disabled = true;
+                    verifyBtn.innerHTML = '<i class="fas fa-clock"></i> Link Expired';
+                    verifyBtn.classList.add('btn-danger');
+                    verifyBtn.classList.remove('btn-primary');
+                }
+                
+                // Show expiration message
+                showNotification('This download link has expired for security reasons.', 'error');
+            }
+        }
+        
+            updateCountdown();
+            setInterval(updateCountdown, 1000);
+        }
+    }
+    {% endif %}
+
+    // Interactive step indicators
+    function updateStepIndicators() {
+        const stepItems = document.querySelectorAll('.step-item');
+        const otpFilled = otpInput && otpInput.value && otpInput.value.replace('-', '').length === 6;
+        const secretFilled = secretKeyInput && secretKeyInput.value.trim().length > 0;
+        
+        // Update step 1 (OTP)
+        if (otpFilled) {
+            stepItems[0].classList.add('completed');
+            stepItems[0].querySelector('.step-circle').style.background = 'var(--success)';
+            stepItems[0].querySelector('i').className = 'fas fa-check';
+            stepItems[0].querySelector('span').style.color = 'var(--success)';
+        } else {
+            stepItems[0].classList.remove('completed');
+            stepItems[0].querySelector('.step-circle').style.background = 'var(--accent)';
+            stepItems[0].querySelector('i').className = 'fas fa-key';
+            stepItems[0].querySelector('span').style.color = 'var(--accent-solid)';
+        }
+        
+        // Update step 2 (Secret Key)
+        if (secretFilled) {
+            stepItems[1].classList.add('active', 'completed');
+            stepItems[1].querySelector('.step-circle').style.background = 'var(--success)';
+            stepItems[1].querySelector('.step-circle').style.border = '2px solid var(--success)';
+            stepItems[1].querySelector('i').className = 'fas fa-check';
+            stepItems[1].querySelector('i').style.color = 'white';
+            stepItems[1].querySelector('span').style.color = 'var(--success)';
+        } else if (otpFilled) {
+            stepItems[1].classList.add('active');
+            stepItems[1].querySelector('.step-circle').style.background = 'var(--secondary-solid)';
+            stepItems[1].querySelector('.step-circle').style.border = '2px solid var(--secondary-solid)';
+            stepItems[1].querySelector('i').style.color = 'white';
+            stepItems[1].querySelector('span').style.color = 'var(--secondary-solid)';
+        } else {
+            stepItems[1].classList.remove('active', 'completed');
+            stepItems[1].querySelector('.step-circle').style.background = 'rgba(113, 128, 150, 0.2)';
+            stepItems[1].querySelector('.step-circle').style.border = '2px solid rgba(113, 128, 150, 0.3)';
+            stepItems[1].querySelector('i').style.color = 'var(--text-muted)';
+            stepItems[1].querySelector('span').style.color = 'var(--text-muted)';
+        }
+        
+        // Update submit button state
+        if (otpFilled && secretFilled) {
+            verifyBtn.disabled = false;
+            verifyBtn.style.opacity = '1';
+            verifyBtn.style.cursor = 'pointer';
+            verifyBtn.style.background = 'linear-gradient(135deg, var(--accent-solid) 0%, #3b82f6 100%)';
+        } else {
+            verifyBtn.disabled = true;
+            verifyBtn.style.opacity = '0.6';
+            verifyBtn.style.cursor = 'not-allowed';
+            verifyBtn.style.background = 'rgba(113, 128, 150, 0.3)';
+        }
+    }
+    
+    // Add event listeners for real-time step updates
+    if (otpInput) {
+        otpInput.addEventListener('input', updateStepIndicators);
+        otpInput.addEventListener('paste', () => setTimeout(updateStepIndicators, 100));
+    }
+    
+    if (secretKeyInput) {
+        secretKeyInput.addEventListener('input', updateStepIndicators);
+        secretKeyInput.addEventListener('paste', () => setTimeout(updateStepIndicators, 100));
+    }
+    
+    // Initial step update
+    setTimeout(updateStepIndicators, 100);
+    
+    // Auto-focus first empty field with enhanced animation
+    if (otpInput && !otpInput.value) {
+        setTimeout(() => {
+            otpInput.focus();
+            otpInput.click(); // Ensure input is properly focused
+            // Add a subtle pulse effect
+            otpInput.style.animation = 'inputPulse 0.6s ease-in-out';
+        }, 800);
+    } else if (secretKeyInput && !secretKeyInput.value) {
+        setTimeout(() => {
+            secretKeyInput.focus();
+            secretKeyInput.click(); // Ensure input is properly focused
+        }, 800);
+    }
+    
+    // Add click handlers to ensure inputs are clickable
+    if (otpInput) {
+        otpInput.addEventListener('click', function(e) {
+            e.stopPropagation();
+            this.focus();
+        });
+    }
+    
+    if (secretKeyInput) {
+        secretKeyInput.addEventListener('click', function(e) {
+            e.stopPropagation();
+            this.focus();
+        });
+    }
+
+    // Add visual feedback for form validation
+    [otpInput, secretKeyInput].forEach(input => {
+        if (input) {
+            input.addEventListener('blur', function() {
+                if (this.hasAttribute('required') && !this.value.trim()) {
+                    this.style.borderColor = 'var(--error)';
+                } else {
+                    this.style.borderColor = '';
+                }
+            });
+
+            input.addEventListener('input', function() {
+                if (this.style.borderColor === 'var(--error)' && this.value.trim()) {
+                    this.style.borderColor = '';
+                }
+            });
+        }
+    });
+});
+
+// Add keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    // Ctrl/Cmd + Enter to submit form
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        const form = document.getElementById('verifyForm');
+        if (form) {
+            form.dispatchEvent(new Event('submit'));
+        }
+    }
+});
+</script>
+{% endblock %}
