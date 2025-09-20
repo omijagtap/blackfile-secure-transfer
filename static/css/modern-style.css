@@ -708,16 +708,58 @@ p {
 .w-full { width: 100%; }
 .h-full { height: 100%; }
 
+/* ==================== MOBILE MENU FIXES ==================== */
+
+/* Mobile Menu Button */
+.mobile-menu-btn {
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  z-index: 1001;
+  position: relative;
+}
+
+.mobile-menu-btn span {
+  width: 25px;
+  height: 3px;
+  background: var(--text-primary);
+  transition: all 0.3s ease;
+  border-radius: 2px;
+  display: block;
+}
+
+.mobile-menu-btn.active span:nth-child(1) {
+  transform: rotate(45deg) translate(6px, 6px);
+}
+
+.mobile-menu-btn.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.mobile-menu-btn.active span:nth-child(3) {
+  transform: rotate(-45deg) translate(6px, -6px);
+}
+
 /* ==================== RESPONSIVE DESIGN ==================== */
 @media (max-width: 768px) {
   .nav-container {
     padding: var(--space-sm);
   }
   
+  /* Show hamburger menu */
+  .mobile-menu-btn {
+    display: flex !important;
+  }
+  
+  /* Hide regular nav menu */
   .nav-menu {
     flex-direction: column;
     position: fixed;
-    top: 70px; /* Fixed positioning below navbar */
+    top: 70px;
     left: 0;
     right: 0;
     width: 100%;
@@ -726,15 +768,18 @@ p {
     -webkit-backdrop-filter: blur(30px);
     padding: var(--space-lg);
     transform: translateY(-100%);
-    transition: var(--transition-smooth);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     visibility: hidden;
     opacity: 0;
     z-index: 999;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: none;
   }
   
+  /* Show active menu */
   .nav-menu.active {
+    display: flex;
     transform: translateY(0);
     visibility: visible;
     opacity: 1;

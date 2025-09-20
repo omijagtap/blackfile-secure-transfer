@@ -73,6 +73,7 @@
             }
         }
         
+        /* Mobile Menu Button - Always Visible on Mobile */
         .mobile-menu-btn {
             display: none;
             flex-direction: column;
@@ -80,15 +81,18 @@
             background: none;
             border: none;
             cursor: pointer;
-            padding: var(--space-xs);
+            padding: 8px;
+            z-index: 1001;
+            position: relative;
         }
         
         .mobile-menu-btn span {
             width: 25px;
             height: 3px;
             background: var(--text-primary);
-            transition: var(--transition-smooth);
+            transition: all 0.3s ease;
             border-radius: 2px;
+            display: block;
         }
         
         .mobile-menu-btn.active span:nth-child(1) {
@@ -103,8 +107,17 @@
             transform: rotate(-45deg) translate(6px, -6px);
         }
         
+        /* Show hamburger on tablets and mobile */
         @media (max-width: 768px) {
             .mobile-menu-btn {
+                display: flex !important;
+            }
+            
+            .nav-menu {
+                display: none;
+            }
+            
+            .nav-menu.active {
                 display: flex;
             }
         }
@@ -313,31 +326,55 @@
     
     <!-- Additional JavaScript -->
     <script>
-        // Mobile menu toggle
+        // Mobile menu toggle - Enhanced with debugging
+        console.log('Initializing mobile menu...');
+        
         const mobileMenuBtn = document.getElementById('mobileMenuBtn');
         const navMenu = document.getElementById('navMenu');
         
-        mobileMenuBtn?.addEventListener('click', function(e) {
-            e.stopPropagation();
-            this.classList.toggle('active');
-            navMenu.classList.toggle('active');
-        });
+        console.log('Mobile menu button:', mobileMenuBtn);
+        console.log('Nav menu:', navMenu);
         
-        // Close mobile menu when clicking outside
-        document.addEventListener('click', function(e) {
-            if (!navMenu?.contains(e.target) && !mobileMenuBtn?.contains(e.target)) {
-                navMenu?.classList.remove('active');
-                mobileMenuBtn?.classList.remove('active');
-            }
-        });
-        
-        // Close mobile menu when clicking nav links
-        navMenu?.querySelectorAll('a').forEach(link => {
-            link.addEventListener('click', () => {
-                navMenu.classList.remove('active');
-                mobileMenuBtn?.classList.remove('active');
+        if (mobileMenuBtn && navMenu) {
+            mobileMenuBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                console.log('Mobile menu clicked');
+                
+                const isActive = this.classList.contains('active');
+                
+                if (isActive) {
+                    this.classList.remove('active');
+                    navMenu.classList.remove('active');
+                    console.log('Menu closed');
+                } else {
+                    this.classList.add('active');
+                    navMenu.classList.add('active');
+                    console.log('Menu opened');
+                }
             });
-        });
+            
+            // Close mobile menu when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!navMenu.contains(e.target) && !mobileMenuBtn.contains(e.target)) {
+                    navMenu.classList.remove('active');
+                    mobileMenuBtn.classList.remove('active');
+                    console.log('Menu closed (outside click)');
+                }
+            });
+            
+            // Close mobile menu when clicking nav links
+            navMenu.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => {
+                    navMenu.classList.remove('active');
+                    mobileMenuBtn.classList.remove('active');
+                    console.log('Menu closed (link click)');
+                });
+            });
+        } else {
+            console.error('Mobile menu elements not found!');
+        }
         
         // Smooth scrolling for anchor links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
