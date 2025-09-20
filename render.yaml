@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: blackfile-app
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: APP_SECRET
+        value: my-super-secret-blackfile-key-2024
+      - key: DEBUG
+        value: False
+      - key: PYTHON_VERSION
+        value: 3.9.18
