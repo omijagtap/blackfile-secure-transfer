@@ -222,6 +222,11 @@
                 <span></span>
             </button>
             
+            <!-- Fallback text menu for devices where hamburger doesn't work -->
+            <button class="mobile-menu-text" id="mobileMenuText" style="display: none; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 8px 12px; border-radius: 4px; font-size: 14px; cursor: pointer;">
+                MENU
+            </button>
+            
             <ul class="nav-menu" id="navMenu">
                 <li><a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">
                     <i class="fas fa-home"></i> Home
@@ -330,50 +335,65 @@
         console.log('Initializing mobile menu...');
         
         const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileMenuText = document.getElementById('mobileMenuText');
         const navMenu = document.getElementById('navMenu');
         
         console.log('Mobile menu button:', mobileMenuBtn);
+        console.log('Mobile menu text:', mobileMenuText);
         console.log('Nav menu:', navMenu);
         
-        if (mobileMenuBtn && navMenu) {
-            // Enhanced click handler with force show/hide
+        // Show fallback text button on very small screens
+        if (window.innerWidth < 400) {
+            mobileMenuText.style.display = 'block';
+            mobileMenuBtn.style.display = 'none';
+        }
+        
+        // Unified menu toggle function
+        function toggleMobileMenu() {
+            console.log('🍔 MOBILE MENU TOGGLE CALLED');
+            
+            if (navMenu.classList.contains('active')) {
+                // Close menu
+                navMenu.classList.remove('active');
+                mobileMenuBtn?.classList.remove('active');
+                if (mobileMenuText) mobileMenuText.textContent = 'MENU';
+                console.log('❌ Menu CLOSED');
+            } else {
+                // Open menu
+                navMenu.classList.add('active');
+                mobileMenuBtn?.classList.add('active');
+                if (mobileMenuText) mobileMenuText.textContent = 'CLOSE';
+                console.log('✅ Menu OPENED');
+            }
+            
+            console.log('Menu active:', navMenu.classList.contains('active'));
+        }
+        
+        // Add event listeners to both buttons
+        if (mobileMenuBtn) {
             mobileMenuBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                
-                console.log('🍔 Mobile menu clicked');
-                console.log('Current classes:', {
-                    button: this.className,
-                    menu: navMenu.className
-                });
-                
-                const isActive = this.classList.contains('active');
-                
-                if (isActive) {
-                    // Close menu
-                    this.classList.remove('active');
-                    navMenu.classList.remove('active');
-                    console.log('✅ Menu closed');
-                } else {
-                    // Open menu with force
-                    this.classList.add('active');
-                    navMenu.classList.add('active');
-                    
-                    // Force display for debugging
-                    navMenu.style.display = 'flex';
-                    navMenu.style.transform = 'translateY(0)';
-                    navMenu.style.opacity = '1';
-                    navMenu.style.visibility = 'visible';
-                    
-                    console.log('✅ Menu opened');
-                    console.log('Menu styles applied:', {
-                        display: navMenu.style.display,
-                        transform: navMenu.style.transform,
-                        opacity: navMenu.style.opacity,
-                        visibility: navMenu.style.visibility
-                    });
-                }
+                toggleMobileMenu();
             });
+            
+            // Touch support
+            mobileMenuBtn.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                console.log('👆 TOUCH EVENT');
+                toggleMobileMenu();
+            }, { passive: false });
+        }
+        
+        // Text button handler
+        if (mobileMenuText) {
+            mobileMenuText.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('📝 TEXT MENU CLICKED');
+                toggleMobileMenu();
+            });
+        }
             
             // Close mobile menu when clicking outside
             document.addEventListener('click', function(e) {
