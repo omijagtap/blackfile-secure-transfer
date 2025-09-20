@@ -437,25 +437,22 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Animated Counters
-    function animateCounter(element, target, duration = 2000, decimals = 0) {
+    // Fast Counter Animation (optimized)
+    function animateCounter(element, target, duration = 1000, decimals = 0) {
         const start = 0;
-        const increment = target / (duration / 16);
+        const increment = target / (duration / 50);  // Reduced frequency
         let current = start;
         
         const timer = setInterval(() => {
             current += increment;
             if (current >= target) {
-                current = target;
+                element.textContent = decimals > 0 ? target.toFixed(decimals) : Math.floor(target).toLocaleString();
                 clearInterval(timer);
+                return;
             }
             
-            if (decimals > 0) {
-                element.textContent = current.toFixed(decimals);
-            } else {
-                element.textContent = Math.floor(current).toLocaleString();
-            }
-        }, 16);
+            element.textContent = decimals > 0 ? current.toFixed(decimals) : Math.floor(current).toLocaleString();
+        }, 50);  // Less frequent updates
     }
     
     // Stats section observer

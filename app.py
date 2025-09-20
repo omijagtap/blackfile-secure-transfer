@@ -8,6 +8,7 @@ import base64
 import datetime
 import hmac
 import smtplib
+import threading
 from email.mime.text import MIMEText
 from io import BytesIO
 
@@ -74,6 +75,10 @@ def init_db():
             downloaded_from_ip TEXT NULL
         );
     """)
+    # Add indexes for faster queries
+    con.execute("CREATE INDEX IF NOT EXISTS idx_token ON transfers(token);")
+    con.execute("CREATE INDEX IF NOT EXISTS idx_expires ON transfers(expires_at);")
+    con.execute("CREATE INDEX IF NOT EXISTS idx_used ON transfers(used);")
     con.commit()
     con.close()
 
@@ -113,40 +118,41 @@ def key_fingerprint(secret_key_bytes: bytes, token: str) -> str:
 
 # -------------------- OTP helpers --------------------
 def gen_otp():
-    # Generate a more secure 6-digit OTP with better randomness
-    import time
-    # Use current timestamp as part of seed for uniqueness
-    timestamp_seed = int(time.time() * 1000000) % 1000000
-    # Combine with secure random for better uniqueness
-    secure_part = secrets.randbelow(1000000)
-    # XOR for better distribution and ensure 6 digits
-    otp_num = (timestamp_seed ^ secure_part) % 1000000
-    # Ensure it's always 6 digits (pad with leading zeros if needed)
-    return f"{otp_num:06d}"
+    """Fast and secure 6-digit OTP generation"""
+    return f"{secrets.randbelow(1000000):06d}"
 
 def hash_otp(otp: str, salt: str):
     return hashlib.sha256((salt + otp).encode()).hexdigest()
 
-# -------------------- Email helper --------------------
-def send_email(to_email: str, subject: str, html_body: str):
-    if not (SMTP_HOST and SMTP_USER and SMTP_PASS):
-        print("=== DEV EMAIL DUMP ===")
-        print("TO:", to_email)
-        print("SUBJECT:", subject)
-        print("BODY:\n", html_body)
-        print("======================")
-        return True
+# -------------------- Optimized Email helper --------------------
+def send_email_async(to_email: str, subject: str, html_body: str):
+    """Send email in background thread for better performance"""
+    def _send_email():
+        try:
+            if not (SMTP_HOST and SMTP_USER and SMTP_PASS):
+                print(f"[EMAIL] TO: {to_email} | SUBJECT: {subject[:50]}...")
+                return True
 
-    msg = MIMEText(html_body, "html")
-    msg["Subject"] = subject
-    msg["From"] = FROM_EMAIL
-    msg["To"] = to_email
+            msg = MIMEText(html_body, "html")
+            msg["Subject"] = subject
+            msg["From"] = FROM_EMAIL
+            msg["To"] = to_email
 
-    with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as s:
-        s.starttls()
-        s.login(SMTP_USER, SMTP_PASS)
-        s.send_message(msg)
+            with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as s:
+                s.starttls()
+                s.login(SMTP_USER, SMTP_PASS)
+                s.send_message(msg)
+            print(f"[EMAIL] ✅ Sent to {to_email}")
+        except Exception as e:
+            print(f"[EMAIL] ❌ Error: {e}")
+    
+    # Send email in background thread - non-blocking!
+    threading.Thread(target=_send_email, daemon=True).start()
     return True
+
+# Keep old function for compatibility
+def send_email(to_email: str, subject: str, html_body: str):
+    return send_email_async(to_email, subject, html_body)
 
 # -------------------- Utilities --------------------
 def client_ip():
@@ -234,7 +240,8 @@ def _bump_attempts_and_maybe_lock(token: str, attempts_now: int):
 @app.route("/")
 def index():
     resp = make_response(render_template("modern-index.html", allowed_expiry=sorted(ALLOWED_EXPIRY)))
-    resp.headers["Cache-Control"] = "no-store"
+    # Cache static content for better performance
+    resp.headers["Cache-Control"] = "public, max-age=300"  # 5 minutes
     return resp
 
 @app.route("/upload", methods=["POST"])
