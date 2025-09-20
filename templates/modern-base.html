@@ -336,22 +336,42 @@
         console.log('Nav menu:', navMenu);
         
         if (mobileMenuBtn && navMenu) {
+            // Enhanced click handler with force show/hide
             mobileMenuBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
                 
-                console.log('Mobile menu clicked');
+                console.log('🍔 Mobile menu clicked');
+                console.log('Current classes:', {
+                    button: this.className,
+                    menu: navMenu.className
+                });
                 
                 const isActive = this.classList.contains('active');
                 
                 if (isActive) {
+                    // Close menu
                     this.classList.remove('active');
                     navMenu.classList.remove('active');
-                    console.log('Menu closed');
+                    console.log('✅ Menu closed');
                 } else {
+                    // Open menu with force
                     this.classList.add('active');
                     navMenu.classList.add('active');
-                    console.log('Menu opened');
+                    
+                    // Force display for debugging
+                    navMenu.style.display = 'flex';
+                    navMenu.style.transform = 'translateY(0)';
+                    navMenu.style.opacity = '1';
+                    navMenu.style.visibility = 'visible';
+                    
+                    console.log('✅ Menu opened');
+                    console.log('Menu styles applied:', {
+                        display: navMenu.style.display,
+                        transform: navMenu.style.transform,
+                        opacity: navMenu.style.opacity,
+                        visibility: navMenu.style.visibility
+                    });
                 }
             });
             

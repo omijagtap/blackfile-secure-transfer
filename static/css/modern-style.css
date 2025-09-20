@@ -710,17 +710,25 @@ p {
 
 /* ==================== MOBILE MENU FIXES ==================== */
 
-/* Mobile Menu Button */
+/* Mobile Menu Button - Enhanced Visibility */
 .mobile-menu-btn {
   display: none;
   flex-direction: column;
   gap: 4px;
-  background: none;
-  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
   cursor: pointer;
-  padding: 8px;
+  padding: 12px;
   z-index: 1001;
   position: relative;
+  transition: all 0.3s ease;
+}
+
+.mobile-menu-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
 }
 
 .mobile-menu-btn span {
@@ -755,7 +763,7 @@ p {
     display: flex !important;
   }
   
-  /* Hide regular nav menu */
+  /* Hide regular nav menu by default on mobile */
   .nav-menu {
     flex-direction: column;
     position: fixed;
@@ -774,15 +782,16 @@ p {
     z-index: 999;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    display: none;
+    display: flex; /* Keep flex but hidden with transform/opacity */
+    pointer-events: none; /* Prevent interaction when hidden */
   }
   
-  /* Show active menu */
+  /* Show active menu with smooth animation */
   .nav-menu.active {
-    display: flex;
-    transform: translateY(0);
-    visibility: visible;
-    opacity: 1;
+    transform: translateY(0) !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important; /* Enable interaction when visible */
   }
   
   .glass-card {
@@ -815,6 +824,50 @@ p {
   
   .upload-area {
     padding: var(--space-lg);
+  }
+  
+  /* Ensure mobile menu works on very small screens */
+  .mobile-menu-btn {
+    display: flex !important;
+    padding: 10px;
+  }
+  
+  .nav-menu {
+    top: 60px; /* Closer to navbar on small screens */
+    padding: var(--space-md);
+  }
+}
+
+/* Additional breakpoint for tablets */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .mobile-menu-btn {
+    display: flex !important;
+  }
+  
+  .nav-menu {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 70px;
+    left: 0;
+    right: 0;
+    width: 100%;
+    background: rgba(10, 10, 15, 0.98);
+    backdrop-filter: blur(30px);
+    padding: var(--space-lg);
+    transform: translateY(-100%);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    visibility: hidden;
+    opacity: 0;
+    z-index: 999;
+    pointer-events: none;
+  }
+  
+  .nav-menu.active {
+    transform: translateY(0) !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
   }
 }
 
