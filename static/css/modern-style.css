@@ -266,6 +266,16 @@ p {
   display: flex;
   align-items: center;
   z-index: 1001;
+  padding: 5px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: var(--transition-smooth);
+}
+
+.logo-container:hover {
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .logo-brand {
@@ -284,12 +294,15 @@ p {
   width: auto;
   max-width: 200px;
   object-fit: contain;
-  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+  opacity: 0.85;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.2));
   transition: var(--transition-smooth);
 }
 
 .logo-image:hover {
-  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4));
+  opacity: 1;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+  transform: scale(1.02);
 }
 
 .nav-menu {
