@@ -261,6 +261,37 @@ p {
   filter: drop-shadow(0 0 10px rgba(79, 172, 254, 0.5));
 }
 
+/* Logo Image Styles */
+.logo-container {
+  display: flex;
+  align-items: center;
+  z-index: 1001;
+}
+
+.logo-brand {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  transition: var(--transition-smooth);
+}
+
+.logo-brand:hover {
+  transform: scale(1.05);
+}
+
+.logo-image {
+  height: 40px;
+  width: auto;
+  max-width: 200px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+  transition: var(--transition-smooth);
+}
+
+.logo-image:hover {
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4));
+}
+
 .nav-menu {
   display: flex;
   list-style: none;

@@ -4,12 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}BlackFile - Secure File Transfer{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modern-style.css') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Favicon Support -->
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='img/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='img/favicon-16x16.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">
+    
+    <!-- Meta Tags for Branding -->
     <meta name="theme-color" content="#0f172a">
+    <meta name="application-name" content="BlackFile">
+    <meta name="description" content="Secure, encrypted file transfers with automatic deletion and two-factor authentication.">
+    <meta property="og:title" content="BlackFile - Secure File Transfer">
+    <meta property="og:description" content="Secure, encrypted file transfers with automatic deletion and two-factor authentication.">
+    <meta property="og:image" content="{{ url_for('static', filename='img/logo-horizontal.png', _external=True) }}">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="BlackFile - Secure File Transfer">
+    <meta name="twitter:description" content="Secure, encrypted file transfers with automatic deletion and two-factor authentication.">
+    <meta name="twitter:image" content="{{ url_for('static', filename='img/logo-horizontal.png', _external=True) }}">
 </head>
 <body>
     <div class="background-overlay"></div>
@@ -56,10 +73,9 @@
     <nav class="navbar">
         <div class="nav-container">
             <div class="logo-container">
-                <div class="logo-brand">
-                    <i class="fas fa-shield-alt logo-icon"></i>
-                    <h1 class="logo-text">BlackFile</h1>
-                </div>
+                <a href="{{ url_for('index') }}" class="logo-brand">
+                    <img src="{{ url_for('static', filename='img/logo-horizontal.png') }}" alt="BlackFile Logo" class="logo-image">
+                </a>
             </div>
             <button class="mobile-menu-btn">
                 <span class="bar"></span>
