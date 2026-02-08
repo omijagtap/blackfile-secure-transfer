@@ -317,35 +317,30 @@ def gen_otp():
 def hash_otp(otp: str, salt: str):
     return hashlib.sha256((salt + otp).encode()).hexdigest()
 
-# -------------------- Optimized Email helper --------------------
-def send_email_async(to_email: str, subject: str, html_body: str):
-    """Send email in background thread for better performance"""
-    def _send_email():
-        try:
-            if not (SMTP_HOST and SMTP_USER and SMTP_PASS):
-                print(f"[EMAIL] TO: {to_email} | SUBJECT: {subject[:50]}...")
-                return True
+# -------------------- Synchronous Email Helper (Fixed for Debugging) --------------------
+def send_email(to_email: str, subject: str, html_body: str):
+    """Send email synchronously - errors will be raised to the caller"""
+    if not (SMTP_HOST and SMTP_USER and SMTP_PASS):
+        print(f"[EMAIL MOCK] TO: {to_email} | SUBJECT: {subject[:50]}...")
+        return True
 
-            msg = MIMEText(html_body, "html")
-            msg["Subject"] = subject
-            msg["From"] = FROM_EMAIL
-            msg["To"] = to_email
+    msg = MIMEText(html_body, "html")
+    msg["Subject"] = subject
+    msg["From"] = FROM_EMAIL
+    msg["To"] = to_email
 
-            with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as s:
-                s.starttls()
-                s.login(SMTP_USER, SMTP_PASS)
-                s.send_message(msg)
-            print(f"[EMAIL] ✅ Sent to {to_email}")
-        except Exception as e:
-            print(f"[EMAIL] ❌ Error: {e}")
+    # Connect to SMTP server (this will raise exception if fails)
+    with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as s:
+        s.starttls()
+        s.login(SMTP_USER, SMTP_PASS)
+        s.send_message(msg)
     
-    # Send email in background thread - non-blocking!
-    threading.Thread(target=_send_email, daemon=True).start()
+    print(f"[EMAIL] ✅ Sent to {to_email}")
     return True
 
-# Keep old function for compatibility
-def send_email(to_email: str, subject: str, html_body: str):
-    return send_email_async(to_email, subject, html_body)
+# Alias for compatibility if needed
+def send_email_async(to_email: str, subject: str, html_body: str):
+    return send_email(to_email, subject, html_body)
 
 # -------------------- Utilities --------------------
 def client_ip():
@@ -553,7 +548,8 @@ def upload():
         return redirect(url_for("index"))
     except Exception as e:
         app.logger.error(f"Upload error: {str(e)}")
-        flash("An error occurred during file upload. Please try again.")
+        # SHOW REAL ERROR TO USER FOR DEBUGGING
+        flash(f"❌ Error: {str(e)}", "error")
         return redirect(url_for("index"))
 
 @app.route("/sent/<token>")
