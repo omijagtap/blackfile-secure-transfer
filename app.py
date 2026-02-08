@@ -331,14 +331,17 @@ def send_email(to_email: str, subject: str, html_body: str):
 
     # Connect to SMTP server (Support both SSL and TLS)
     try:
-        if SMTP_PORT == 465:
+        print(f"[EMAIL] Connecting to {SMTP_HOST}:{SMTP_PORT}...")
+        if int(SMTP_PORT) == 465:
+            print("[EMAIL] Mode: SSL (Secure)")
             # SSL Connection (Standard for 465)
-            with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT) as s:
+            with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=30) as s:
                 s.login(SMTP_USER, SMTP_PASS)
                 s.send_message(msg)
         else:
+            print("[EMAIL] Mode: TLS (StartTLS)")
             # TLS Connection (Standard for 587)
-            with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as s:
+            with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=30) as s:
                 s.starttls()
                 s.login(SMTP_USER, SMTP_PASS)
                 s.send_message(msg)
