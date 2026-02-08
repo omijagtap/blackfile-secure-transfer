@@ -8,43 +8,44 @@
 
 /* ==================== CSS VARIABLES ==================== */
 :root {
-  /* Modern Dark/Grey Color Palette */
-  --primary: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
-  --primary-solid: #4a5568;
-  --primary-dark: #2d3748;
-  --secondary: linear-gradient(135deg, #718096 0%, #4a5568 100%);
-  --secondary-solid: #718096;
-  --accent: linear-gradient(135deg, #63b3ed 0%, #4299e1 100%);
-  --accent-solid: #4299e1;
+  /* STUNNING DARK THEME WITH ORANGE ACCENTS */
+  --primary: linear-gradient(135deg, #ff6b35 0%, #ff8c42 50%, #ffa600 100%);
+  --primary-solid: #ff6b35;
+  --primary-dark: #e65a2b;
+  --secondary: linear-gradient(135deg, #ff8c42 0%, #ffa600 100%);
+  --secondary-solid: #ff8c42;
+  --accent: linear-gradient(135deg, #ff6b35 0%, #ffa600 100%);
+  --accent-solid: #ff6b35;
   
-  /* Glassmorphism Colors */
-  --glass-bg: rgba(74, 85, 104, 0.1);
-  --glass-border: rgba(113, 128, 150, 0.15);
-  --glass-hover: rgba(113, 128, 150, 0.2);
+  /* Glassmorphism Colors with Orange Tint */
+  --glass-bg: rgba(255, 107, 53, 0.05);
+  --glass-border: rgba(255, 140, 66, 0.15);
+  --glass-hover: rgba(255, 166, 0, 0.1);
   
-  /* Dark Theme */
-  --bg-primary: #1a1a1a;
-  --bg-secondary: #2d2d2d;
-  --bg-card: rgba(45, 45, 45, 0.9);
-  --surface: rgba(58, 58, 58, 0.9);
+  /* DEEP DARK Theme */
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #141414;
+  --bg-card: rgba(20, 20, 20, 0.95);
+  --surface: rgba(30, 30, 30, 0.95);
   
   /* Text Colors */
   --text-primary: #ffffff;
-  --text-secondary: #b4b7c1;
-  --text-muted: #6c7293;
-  --text-accent: #00d4ff;
+  --text-secondary: #d1d5db;
+  --text-muted: #9ca3af;
+  --text-accent: #ff6b35;
   
-  /* Status Colors */
+  /* Status Colors with Orange Theme */
   --success: #10b981;
   --error: #ef4444;
-  --warning: #f59e0b;
-  --info: #3b82f6;
+  --warning: #ffa600;
+  --info: #ff8c42;
   
-  /* Shadows & Effects */
-  --shadow-sm: 0 4px 15px rgba(0, 0, 0, 0.1);
-  --shadow-md: 0 8px 30px rgba(0, 0, 0, 0.15);
-  --shadow-lg: 0 15px 60px rgba(0, 0, 0, 0.25);
-  --shadow-glow: 0 0 30px rgba(102, 126, 234, 0.3);
+  /* Shadows & Effects with Orange Glow */
+  --shadow-sm: 0 4px 15px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 8px 30px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 15px 60px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 40px rgba(255, 107, 53, 0.4);
+  --shadow-orange: 0 0 60px rgba(255, 140, 66, 0.3);
   
   /* Border Radius */
   --radius-sm: 8px;

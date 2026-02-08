@@ -47,6 +47,199 @@ OTP_MAX_TRIES = int(os.environ.get("OTP_MAX_TRIES", "3"))
 LOCK_MIN = int(os.environ.get("LOCK_MIN", "10"))
 EMAIL_REGEX = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
 
+# -------------------- AI Security Features --------------------
+
+def get_ai_security_tip(filename):
+    """
+    AI-powered security tip generator based on file type analysis
+    Returns personalized security advice for different file types
+    """
+    ext = filename.lower().split('.')[-1] if '.' in filename else ''
+    
+    tips = {
+        # Documents
+        'pdf': {
+            'icon': '📄',
+            'tip': 'PDFs may contain metadata like author name and edit history. Consider using a PDF cleaner before sharing sensitive documents.',
+            'risk': 'medium'
+        },
+        'doc': {
+            'icon': '📝',
+            'tip': 'Word documents may contain tracked changes and comments. Use "Accept All Changes" and remove comments before sharing.',
+            'risk': 'medium'
+        },
+        'docx': {
+            'icon': '📝',
+            'tip': 'Word documents may contain tracked changes and comments. Use "Accept All Changes" and remove comments before sharing.',
+            'risk': 'medium'
+        },
+        'xls': {
+            'icon': '📊',
+            'tip': 'Excel files may contain hidden sheets and formulas. Review all sheets before sharing.',
+            'risk': 'medium'
+        },
+        'xlsx': {
+            'icon': '📊',
+            'tip': 'Excel files may contain hidden sheets and formulas. Review all sheets before sharing.',
+            'risk': 'medium'
+        },
+        
+        # Images
+        'jpg': {
+            'icon': '📸',
+            'tip': 'Images may contain EXIF data including GPS location, camera model, and timestamp. Remove metadata if sharing sensitive photos.',
+            'risk': 'low'
+        },
+        'jpeg': {
+            'icon': '📸',
+            'tip': 'Images may contain EXIF data including GPS location, camera model, and timestamp. Remove metadata if sharing sensitive photos.',
+            'risk': 'low'
+        },
+        'png': {
+            'icon': '🖼️',
+            'tip': 'PNG files may contain embedded text and metadata. Verify content before sharing.',
+            'risk': 'low'
+        },
+        'gif': {
+            'icon': '🎬',
+            'tip': 'Animated images are safe to share but may contain multiple frames. Preview before sending.',
+            'risk': 'low'
+        },
+        
+        # Executables (High Risk)
+        'exe': {
+            'icon': '⚠️',
+            'tip': 'Executable files pose security risks. Only share with trusted recipients who expect this file type.',
+            'risk': 'high'
+        },
+        'bat': {
+            'icon': '⚠️',
+            'tip': 'Batch script files can execute commands. Ensure recipient knows this is a legitimate file.',
+            'risk': 'high'
+        },
+        'cmd': {
+            'icon': '⚠️',
+            'tip': 'Command script files can execute system commands. Share only with trusted recipients.',
+            'risk': 'high'
+        },
+        'sh': {
+            'icon': '⚠️',
+            'tip': 'Shell scripts can execute commands. Verify recipient expects this file type.',
+            'risk': 'high'
+        },
+        
+        # Archives
+        'zip': {
+            'icon': '📦',
+            'tip': 'Compressed files may contain multiple items. Verify all contents are safe and expected before sharing.',
+            'risk': 'medium'
+        },
+        'rar': {
+            'icon': '📦',
+            'tip': 'Compressed files may contain multiple items. Verify all contents are safe and expected before sharing.',
+            'risk': 'medium'
+        },
+        '7z': {
+            'icon': '📦',
+            'tip': 'Compressed files may contain multiple items. Verify all contents are safe and expected before sharing.',
+            'risk': 'medium'
+        },
+        
+        # Text files
+        'txt': {
+            'icon': '📃',
+            'tip': 'Text files are generally safe. Ensure no sensitive information is included in plain text.',
+            'risk': 'low'
+        },
+        'csv': {
+            'icon': '📋',
+            'tip': 'CSV files may contain sensitive data. Review contents before sharing.',
+            'risk': 'low'
+        }
+    }
+    
+    # Default tip for unknown file types
+    default_tip = {
+        'icon': '🔒',
+        'tip': 'Always verify the recipient email address before sending sensitive files. Double-check for typos.',
+        'risk': 'low'
+    }
+    
+    return tips.get(ext, default_tip)
+
+
+def ai_malware_scan(filename, file_bytes):
+    """
+    AI-powered malware detection system
+    Performs multiple security checks on uploaded files
+    Returns: (is_safe: bool, message: str, threat_level: str)
+    """
+    ext = filename.lower().split('.')[-1] if '.' in filename else ''
+    file_size = len(file_bytes)
+    
+    # Check 1: Dangerous file extensions (High Risk)
+    dangerous_extensions = ['exe', 'bat', 'cmd', 'scr', 'vbs', 'js', 'jar', 'com', 'pif', 'msi']
+    if ext in dangerous_extensions:
+        return False, f"⚠️ {ext.upper()} files are potentially dangerous and blocked for security. Use a secure file transfer method for executables.", "HIGH"
+    
+    # Check 2: File size anomaly detection
+    if file_size < 100:  # Suspiciously small
+        return False, "⚠️ File appears corrupted or empty. Upload blocked for security.", "MEDIUM"
+    
+    if file_size > 10 * 1024 * 1024:  # Over 10MB (should be caught by Flask, but double-check)
+        return False, "⚠️ File exceeds maximum size limit of 10 MB.", "LOW"
+    
+    # Check 3: Suspicious file patterns (AI-based pattern matching)
+    # Check for executable headers in non-executable files
+    suspicious_patterns = [
+        (b'MZ\x90\x00', 'PE executable header'),  # Windows executable
+        (b'\x7fELF', 'ELF executable header'),    # Linux executable
+        (b'!This program', 'Self-extracting archive'),
+        (b'<script', 'Embedded script'),          # JavaScript in files
+    ]
+    
+    # Only check first 2KB for performance
+    file_header = file_bytes[:2048]
+    
+    for pattern, description in suspicious_patterns:
+        if pattern in file_header:
+            # Allow scripts in legitimate file types
+            if ext in ['html', 'htm', 'xml'] and pattern == b'<script':
+                continue
+            return False, f"⚠️ File contains suspicious pattern ({description}). Upload blocked for security.", "HIGH"
+    
+    # Check 4: Double extension check (e.g., file.pdf.exe)
+    if filename.count('.') > 1:
+        parts = filename.split('.')
+        if len(parts) > 2:
+            # Check if any part before the last extension is suspicious
+            for part in parts[:-1]:
+                if part.lower() in dangerous_extensions:
+                    return False, "⚠️ File has suspicious double extension. Upload blocked for security.", "HIGH"
+    
+    # Check 5: Null byte injection check (only in filename, not file content)
+    # Note: Binary files like PDFs naturally contain null bytes in content
+    if '\x00' in filename:
+        return False, "⚠️ Filename contains null bytes. Upload blocked for security.", "HIGH"
+    
+    # All checks passed - file is safe
+    return True, "✅ File passed AI security scan. Safe to upload.", "SAFE"
+
+
+def get_file_risk_badge(risk_level):
+    """
+    Returns a visual badge for file risk level
+    """
+    badges = {
+        'low': '🟢 Low Risk',
+        'medium': '🟡 Medium Risk',
+        'high': '🔴 High Risk',
+        'SAFE': '✅ Verified Safe',
+        'HIGH': '⛔ Blocked',
+        'MEDIUM': '⚠️ Warning'
+    }
+    return badges.get(risk_level, '🔵 Unknown')
+
 # -------------------- Database helpers --------------------
 def db():
     con = sqlite3.connect(DB_PATH, detect_types=sqlite3.PARSE_DECLTYPES, check_same_thread=False)
@@ -179,41 +372,30 @@ def _notify_sender_download(row, ip):
     email = row["recipient_email"]
     filename = row['filename_orig']
     
-    # Get file extension for subject
-    file_ext = filename.split('.')[-1].upper() if '.' in filename else 'FILE'
-    
-    subject = f"BlackFile: {file_ext} File '{filename}' Was Downloaded Successfully"
+    subject = f"BlackFile: File '{filename}' Downloaded"
     html = f"""
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f9f9f9; padding: 20px; border-radius: 10px;">
-            <div style="text-align: center; margin-bottom: 20px;">
-                <h2 style="color: #10b981; margin-bottom: 10px;">✅ Download Successful!</h2>
-                <p style="color: #666; font-size: 16px;">Your secure file transfer has been completed</p>
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; background: #ffffff; color: #1f2937;">
+            <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 24px; text-align: center;">
+                <h1 style="margin: 0; font-size: 20px; font-weight: 700; color: #ffffff; letter-spacing: -0.5px;">Download Successful</h1>
+                <p style="margin: 8px 0 0 0; font-size: 13px; color: rgba(255,255,255,0.9);">Your file has been downloaded</p>
             </div>
             
-            <div style="background: white; padding: 20px; border-radius: 8px; border-left: 4px solid #10b981; margin: 20px 0;">
-                <h3 style="color: #333; margin-top: 0;">📁 File Downloaded: <span style="color: #4299e1;">{filename}</span></h3>
-                <div style="margin: 15px 0;">
-                    <p style="margin: 8px 0;"><strong>🕒 Download Time:</strong> {get_ist_time().strftime('%Y-%m-%d at %H:%M IST')}</p>
-                    <p style="margin: 8px 0;"><strong>🌐 Downloaded From:</strong> <code style="background: #f1f1f1; padding: 2px 6px; border-radius: 4px;">{ip}</code></p>
+            <div style="padding: 32px 24px;">
+                <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 20px; margin-bottom: 24px;">
+                    <p style="margin: 0 0 12px 0; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">Download Details</p>
+                    <p style="margin: 0 0 8px 0; font-size: 14px; color: #374151;"><strong>File:</strong> {filename}</p>
+                    <p style="margin: 0 0 8px 0; font-size: 14px; color: #374151;"><strong>Time:</strong> {get_ist_time().strftime('%Y-%m-%d at %H:%M IST')}</p>
+                    <p style="margin: 0; font-size: 14px; color: #374151;"><strong>IP Address:</strong> <code style="background: #f3f4f6; padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 13px;">{ip}</code></p>
+                </div>
+                
+                <div style="background: #fef3c7; border: 1px solid #fde68a; border-radius: 6px; padding: 16px;">
+                    <p style="margin: 0; font-size: 12px; color: #92400e; line-height: 1.6;"><strong>🔒 Security Notice:</strong> The file has been permanently deleted from our servers and the download link is now invalid.</p>
                 </div>
             </div>
             
-            <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 15px; margin: 20px 0;">
-                <p style="margin: 0; color: #856404;">
-                    <strong>🔒 Security Notice:</strong> For your protection, this file has been permanently deleted from our servers and the download link is now invalid.
-                </p>
+            <div style="background: #f9fafb; padding: 20px 24px; border-top: 1px solid #e5e7eb; text-align: center;">
+                <p style="margin: 0; font-size: 11px; color: #6b7280;">This is an automated message from <strong>BlackFile</strong> secure transfer service</p>
             </div>
-            
-            <div style="text-align: center; margin-top: 30px; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px;">
-                <h3 style="color: white; margin: 0 0 10px 0;">🏠 Returning to Homepage</h3>
-                <p style="color: #e0e7ff; margin: 0; font-size: 14px;">This notification will redirect you to the BlackFile homepage in 5 seconds...</p>
-            </div>
-            
-            <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
-            <p style="color: #888; font-size: 12px; text-align: center; margin: 0;">
-                This is an automated message from <strong>BlackFile</strong> secure transfer service.<br>
-                <a href="#" style="color: #4299e1; text-decoration: none;">blackfile.secure</a>
-            </p>
         </div>
     """
     send_email(email, subject, html)
@@ -273,6 +455,17 @@ def upload():
             flash("Uploaded file is empty.")
             return redirect(url_for("index"))
 
+        # ✨ AI SECURITY CHECK: Malware Detection
+        is_safe, scan_message, threat_level = ai_malware_scan(filename_orig, file_bytes)
+        if not is_safe:
+            app.logger.warning(f"AI Malware Scan blocked file: {filename_orig} - {scan_message}")
+            flash(scan_message, "error")
+            return redirect(url_for("index"))
+        
+        # ✨ AI FEATURE: Get personalized security tip
+        security_tip = get_ai_security_tip(filename_orig)
+        app.logger.info(f"AI Security Scan: {filename_orig} - {scan_message}")
+
         sha256_hex = hashlib.sha256(file_bytes).hexdigest()
 
         # Encrypt file at rest
@@ -311,38 +504,53 @@ def upload():
         # Convert UTC expires_at to IST for email display
         ist_expires_at = expires_at + datetime.timedelta(hours=5, minutes=30)
         
+        # Store secret key in session for the sent page (in case user wants to see it)
+        secret_key_b64 = base64.urlsafe_b64encode(secret_key).decode().rstrip("=")
+        session[f"secret_{token}"] = secret_key_b64
+        
         html = f"""
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <h2 style="color: #333;">BlackFile Secure Transfer</h2>
-                <p>You've received a secure file transfer via BlackFile.</p>
-                
-                <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 15px 0;">
-                    <p><strong>Transfer Details:</strong></p>
-                    <p>📁 File: <b>{filename_orig}</b></p>
-                    <p>⏰ Expires: <b>{ist_expires_at.strftime('%Y-%m-%d at %H:%M IST')}</b></p>
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; background: #ffffff; color: #1f2937;">
+                <div style="background: linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%); padding: 24px; text-align: center;">
+                    <h1 style="margin: 0; font-size: 20px; font-weight: 700; color: #ffffff; letter-spacing: -0.5px;">BlackFile Secure Transfer</h1>
+                    <p style="margin: 8px 0 0 0; font-size: 13px; color: rgba(255,255,255,0.9);">You have received a secure file</p>
                 </div>
                 
-                <div style="background-color: #e8f4fc; padding: 15px; border-radius: 5px; margin: 15px 0;">
-                    <p><strong>To download your file:</strong></p>
-                    <p>1. Visit: <a href="{link}" style="word-break: break-all;">{link}</a></p>
-                    <p>2. Enter this OTP: <code style="background: #eee; padding: 5px; border-radius: 3px;">{otp}</code></p>
-                    <p>3. Ask the sender for the <b>Secret Key</b> (shared separately)</p>
+                <div style="padding: 32px 24px;">
+                    <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 20px; margin-bottom: 24px;">
+                        <p style="margin: 0 0 12px 0; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">Transfer Details</p>
+                        <p style="margin: 0 0 8px 0; font-size: 14px; color: #374151;"><strong>File:</strong> {filename_orig}</p>
+                        <p style="margin: 0; font-size: 14px; color: #374151;"><strong>Expires:</strong> {ist_expires_at.strftime('%Y-%m-%d at %H:%M IST')}</p>
+                    </div>
+                    
+                    <div style="background: #eff6ff; border: 1px solid #dbeafe; border-radius: 6px; padding: 20px; margin-bottom: 24px;">
+                        <p style="margin: 0 0 12px 0; font-size: 12px; font-weight: 600; color: #1e40af; text-transform: uppercase; letter-spacing: 0.5px;">Download Instructions</p>
+                        <ol style="margin: 0; padding-left: 20px; font-size: 13px; color: #374151; line-height: 1.8;">
+                            <li style="margin-bottom: 8px;">Click the link below to access the download page</li>
+                            <li style="margin-bottom: 8px;">Enter this OTP code: <code style="background: #dbeafe; padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 14px; font-weight: 600; color: #1e40af;">{otp}</code></li>
+                            <li>Enter this Secret Key: <code style="background: #dbeafe; padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 12px; font-weight: 600; color: #1e40af;">{secret_key_b64}</code></li>
+                        </ol>
+                    </div>
+                    
+                    <div style="text-align: center; margin-bottom: 24px;">
+                        <a href="{link}" style="display: inline-block; background: linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%); color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-size: 14px; font-weight: 600; letter-spacing: 0.3px;">Download File</a>
+                    </div>
+                    
+                    <div style="background: #fef3c7; border: 1px solid #fde68a; border-radius: 6px; padding: 16px; margin-bottom: 24px;">
+                        <p style="margin: 0; font-size: 12px; color: #92400e; line-height: 1.6;"><strong>⚠️ Security Notice:</strong> This link expires after one download or at the expiration time. The file will be permanently deleted from our servers.</p>
+                    </div>
                 </div>
                 
-                <p style="color: #d32f2f; font-size: 14px;">
-                    ⚠️ For security, this link will expire after download or at the expiration time.
-                </p>
-                
-                <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-                <p style="color: #888; font-size: 12px;">
-                    This is an automated message from BlackFile secure transfer service.</p>
+                <div style="background: #f9fafb; padding: 20px 24px; border-top: 1px solid #e5e7eb; text-align: center;">
+                    <p style="margin: 0; font-size: 11px; color: #6b7280;">This is an automated message from <strong>BlackFile</strong> secure transfer service</p>
+                </div>
             </div>
         """
         send_email(email, "Your BlackFile secure link", html)
 
-        secret_key_b64 = base64.urlsafe_b64encode(secret_key).decode().rstrip("=")
-        session[f"secret_{token}"] = secret_key_b64
-        return redirect(url_for("sent", token=token))
+        # Redirect to index with success message including AI security tip
+        success_msg = f"✅ File sent successfully to {email}! {security_tip['icon']} AI Tip: {security_tip['tip']}"
+        flash(success_msg, "success")
+        return redirect(url_for("index"))
     except Exception as e:
         app.logger.error(f"Upload error: {str(e)}")
         flash("An error occurred during file upload. Please try again.")

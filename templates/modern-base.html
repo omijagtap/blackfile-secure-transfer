@@ -231,8 +231,10 @@
     <!-- Navigation -->
     <nav class="navbar">
         <div class="nav-container">
-            <a href="{{ url_for('index') }}" class="logo">
-                <img src="{{ url_for('static', filename='img/logo-horizontal.png') }}" alt="BlackFile Logo" class="logo-image" style="height: 40px; width: auto; max-width: 200px; object-fit: contain; opacity: 0.85; transition: all 0.3s ease;">
+            <a href="{{ url_for('index') }}" class="logo" style="text-decoration: none;">
+                <span style="font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, #ff6b35 0%, #ff8c42 50%, #ffa600 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.5px; text-shadow: 0 0 30px rgba(255, 107, 53, 0.3);">
+                    Black<span style="color: #fff;">File</span>
+                </span>
             </a>
             
             <button class="mobile-menu-btn" id="mobileMenuBtn">
