@@ -329,11 +329,22 @@ def send_email(to_email: str, subject: str, html_body: str):
     msg["From"] = FROM_EMAIL
     msg["To"] = to_email
 
-    # Connect to SMTP server (this will raise exception if fails)
-    with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as s:
-        s.starttls()
-        s.login(SMTP_USER, SMTP_PASS)
-        s.send_message(msg)
+    # Connect to SMTP server (Support both SSL and TLS)
+    try:
+        if SMTP_PORT == 465:
+            # SSL Connection (Standard for 465)
+            with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT) as s:
+                s.login(SMTP_USER, SMTP_PASS)
+                s.send_message(msg)
+        else:
+            # TLS Connection (Standard for 587)
+            with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as s:
+                s.starttls()
+                s.login(SMTP_USER, SMTP_PASS)
+                s.send_message(msg)
+    except Exception as e:
+        print(f"[EMAIL] ❌ Failed to connect: {e}")
+        raise e  # Re-raise to show error in UI
     
     print(f"[EMAIL] ✅ Sent to {to_email}")
     return True
