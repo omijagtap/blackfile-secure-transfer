@@ -364,9 +364,18 @@ def send_email(to_email: str, subject: str, html_body: str):
                 print(f"[EMAIL] Trying fallback to port 587...")
             continue
     
-    # If all ports failed, raise the last error
+    # If all ports failed, provide user-friendly error message
     print(f"[EMAIL] ❌ All connection attempts failed. Last error: {last_error}")
-    raise last_error
+    
+    # Check if it's a network unreachable error (common on Render free tier)
+    if "Network is unreachable" in str(last_error) or "Errno 101" in str(last_error):
+        raise Exception(
+            "⚠️ SMTP is blocked on this hosting platform. "
+            "Please contact support or use a different email service (SendGrid, Mailgun, etc.). "
+            "Error: Network unreachable - Ports 465 and 587 are blocked."
+        )
+    else:
+        raise last_error
 
 # Alias for compatibility if needed
 def send_email_async(to_email: str, subject: str, html_body: str):
