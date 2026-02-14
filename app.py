@@ -38,8 +38,8 @@ DB_PATH = os.path.join(ROOT, "blackfile.db")
 # Brevo allows SMTP on free tier with 300 emails/day
 SMTP_HOST = "smtp-relay.brevo.com"
 SMTP_PORT = 587
-SMTP_USER = os.environ.get("BREVO_SMTP_USER", "omijagtap304@gmail.com")
-SMTP_PASS = os.environ.get("BREVO_SMTP_PASS", "")  # Will be set in code below
+SMTP_USER = os.environ.get("BREVO_SMTP_USER", "a262b1001@smtp-brevo.com")
+SMTP_PASS = os.environ.get("BREVO_SMTP_PASS", "")
 FROM_EMAIL = "omijagtap304@gmail.com"
 
 # Security settings
@@ -322,13 +322,10 @@ def hash_otp(otp: str, salt: str):
 def send_email(to_email: str, subject: str, html_body: str):
     """Send email using Brevo SMTP - works on Render free tier (300 emails/day)"""
     
-    # Brevo SMTP credentials (get from environment or use default)
-    smtp_pass = SMTP_PASS or os.environ.get("BREVO_API_KEY", "")
-    
-    if not smtp_pass:
+    # Check if credentials are configured
+    if not SMTP_PASS:
         print(f"[EMAIL MOCK] TO: {to_email} | SUBJECT: {subject[:50]}...")
-        print(f"[EMAIL MOCK] Set BREVO_API_KEY environment variable to send real emails")
-        print(f"[EMAIL MOCK] Get your key from: https://app.brevo.com/settings/keys/api")
+        print(f"[EMAIL MOCK] Brevo credentials not configured")
         return True
     
     try:
@@ -350,7 +347,7 @@ def send_email(to_email: str, subject: str, html_body: str):
             print("[BREVO] Starting TLS...")
             server.starttls()
             print("[BREVO] Logging in...")
-            server.login(SMTP_USER, smtp_pass)
+            server.login(SMTP_USER, SMTP_PASS)
             print("[BREVO] Sending message...")
             server.send_message(msg)
         
@@ -359,7 +356,7 @@ def send_email(to_email: str, subject: str, html_body: str):
         
     except smtplib.SMTPAuthenticationError as e:
         print(f"[BREVO] ❌ Authentication failed: {e}")
-        raise Exception(f"Email authentication failed. Please check your Brevo API key.")
+        raise Exception(f"Email authentication failed. Please check Brevo credentials.")
     except Exception as e:
         print(f"[BREVO] ❌ Failed to send email: {e}")
         raise Exception(f"Failed to send email via Brevo: {str(e)}")
