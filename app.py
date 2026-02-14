@@ -317,9 +317,9 @@ def gen_otp():
 def hash_otp(otp: str, salt: str):
     return hashlib.sha256((salt + otp).encode()).hexdigest()
 
-# -------------------- Synchronous Email Helper (Fixed for Debugging) --------------------
+# -------------------- Synchronous Email Helper (Fixed for Render) --------------------
 def send_email(to_email: str, subject: str, html_body: str):
-    """Send email synchronously - errors will be raised to the caller"""
+    """Send email synchronously with automatic port fallback for Render compatibility"""
     if not (SMTP_HOST and SMTP_USER and SMTP_PASS):
         print(f"[EMAIL MOCK] TO: {to_email} | SUBJECT: {subject[:50]}...")
         return True
@@ -329,28 +329,44 @@ def send_email(to_email: str, subject: str, html_body: str):
     msg["From"] = FROM_EMAIL
     msg["To"] = to_email
 
-    # Connect to SMTP server (Support both SSL and TLS)
-    try:
-        print(f"[EMAIL] Connecting to {SMTP_HOST}:{SMTP_PORT}...")
-        if int(SMTP_PORT) == 465:
-            print("[EMAIL] Mode: SSL (Secure)")
-            # SSL Connection (Standard for 465)
-            with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=30) as s:
-                s.login(SMTP_USER, SMTP_PASS)
-                s.send_message(msg)
-        else:
-            print("[EMAIL] Mode: TLS (StartTLS)")
-            # TLS Connection (Standard for 587)
-            with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=30) as s:
-                s.starttls()
-                s.login(SMTP_USER, SMTP_PASS)
-                s.send_message(msg)
-    except Exception as e:
-        print(f"[EMAIL] ❌ Failed to connect: {e}")
-        raise e  # Re-raise to show error in UI
+    # Try port 465 (SSL) first - works better on Render free tier
+    # Then fallback to port 587 (TLS) if 465 fails
+    ports_to_try = [
+        (465, "SSL", lambda: smtplib.SMTP_SSL(SMTP_HOST, 465, timeout=30)),
+        (587, "TLS", lambda: smtplib.SMTP(SMTP_HOST, 587, timeout=30))
+    ]
     
-    print(f"[EMAIL] ✅ Sent to {to_email}")
-    return True
+    last_error = None
+    for port, mode, smtp_factory in ports_to_try:
+        try:
+            print(f"[EMAIL] Attempting {mode} connection to {SMTP_HOST}:{port}...")
+            
+            if mode == "SSL":
+                with smtp_factory() as s:
+                    print(f"[EMAIL] Connected via SSL (port {port})")
+                    s.login(SMTP_USER, SMTP_PASS)
+                    s.send_message(msg)
+                    print(f"[EMAIL] ✅ Email sent successfully to {to_email} via port {port}")
+                    return True
+            else:  # TLS
+                with smtp_factory() as s:
+                    print(f"[EMAIL] Connected, starting TLS (port {port})...")
+                    s.starttls()
+                    s.login(SMTP_USER, SMTP_PASS)
+                    s.send_message(msg)
+                    print(f"[EMAIL] ✅ Email sent successfully to {to_email} via port {port}")
+                    return True
+                    
+        except Exception as e:
+            last_error = e
+            print(f"[EMAIL] ⚠️ Port {port} ({mode}) failed: {str(e)}")
+            if port == 465:
+                print(f"[EMAIL] Trying fallback to port 587...")
+            continue
+    
+    # If all ports failed, raise the last error
+    print(f"[EMAIL] ❌ All connection attempts failed. Last error: {last_error}")
+    raise last_error
 
 # Alias for compatibility if needed
 def send_email_async(to_email: str, subject: str, html_body: str):
