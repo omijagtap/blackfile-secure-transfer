@@ -34,12 +34,11 @@ UPLOADS = os.path.join(ROOT, "uploads")
 os.makedirs(UPLOADS, exist_ok=True)
 DB_PATH = os.path.join(ROOT, "blackfile.db")
 
-# Email settings (Brevo SMTP - Works on Render Free Tier)
-# Brevo allows SMTP on free tier with 300 emails/day
-SMTP_HOST = "smtp-relay.brevo.com"
+# Email settings (Gmail SMTP - Works on Render Free Tier)
+SMTP_HOST = "smtp.gmail.com"
 SMTP_PORT = 587
-SMTP_USER = os.environ.get("BREVO_SMTP_USER", "a262b1001@smtp-brevo.com")
-SMTP_PASS = os.environ.get("BREVO_SMTP_PASS", "")
+SMTP_USER = os.environ.get("GMAIL_USER", "omijagtap304@gmail.com")
+SMTP_PASS = os.environ.get("GMAIL_APP_PASSWORD", "")
 FROM_EMAIL = "omijagtap304@gmail.com"
 
 # Security settings
@@ -318,18 +317,18 @@ def gen_otp():
 def hash_otp(otp: str, salt: str):
     return hashlib.sha256((salt + otp).encode()).hexdigest()
 
-# -------------------- Brevo SMTP Email Helper (Works on Render) --------------------
+# -------------------- Gmail SMTP Email Helper (Works on Render) --------------------
 def send_email(to_email: str, subject: str, html_body: str):
-    """Send email using Brevo SMTP - works on Render free tier (300 emails/day)"""
+    """Send email using Gmail SMTP - works on Render free tier"""
     
     # Check if credentials are configured
     if not SMTP_PASS:
         print(f"[EMAIL MOCK] TO: {to_email} | SUBJECT: {subject[:50]}...")
-        print(f"[EMAIL MOCK] Brevo credentials not configured")
+        print(f"[EMAIL MOCK] Gmail App Password not configured")
         return True
     
     try:
-        print(f"[BREVO] Sending email to {to_email}...")
+        print(f"[GMAIL] Sending email to {to_email}...")
         
         # Create message
         msg = MIMEMultipart('alternative')
@@ -341,25 +340,25 @@ def send_email(to_email: str, subject: str, html_body: str):
         html_part = MIMEText(html_body, 'html')
         msg.attach(html_part)
         
-        # Connect to Brevo SMTP server
-        print(f"[BREVO] Connecting to {SMTP_HOST}:{SMTP_PORT}...")
+        # Connect to Gmail SMTP server
+        print(f"[GMAIL] Connecting to {SMTP_HOST}:{SMTP_PORT}...")
         with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=30) as server:
-            print("[BREVO] Starting TLS...")
+            print("[GMAIL] Starting TLS...")
             server.starttls()
-            print("[BREVO] Logging in...")
+            print("[GMAIL] Logging in...")
             server.login(SMTP_USER, SMTP_PASS)
-            print("[BREVO] Sending message...")
+            print("[GMAIL] Sending message...")
             server.send_message(msg)
         
-        print(f"[BREVO] ✅ Email sent successfully to {to_email}")
+        print(f"[GMAIL] ✅ Email sent successfully to {to_email}")
         return True
         
     except smtplib.SMTPAuthenticationError as e:
-        print(f"[BREVO] ❌ Authentication failed: {e}")
-        raise Exception(f"Email authentication failed. Please check Brevo credentials.")
+        print(f"[GMAIL] ❌ Authentication failed: {e}")
+        raise Exception(f"Email authentication failed. Please check Gmail App Password.")
     except Exception as e:
-        print(f"[BREVO] ❌ Failed to send email: {e}")
-        raise Exception(f"Failed to send email via Brevo: {str(e)}")
+        print(f"[GMAIL] ❌ Failed to send email: {e}")
+        raise Exception(f"Failed to send email via Gmail: {str(e)}")
 
 # Alias for compatibility
 def send_email_async(to_email: str, subject: str, html_body: str):
