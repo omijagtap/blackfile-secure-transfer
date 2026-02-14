@@ -7,8 +7,9 @@ import hashlib
 import base64
 import datetime
 import hmac
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from io import BytesIO
 
 from flask import (
@@ -33,9 +34,13 @@ UPLOADS = os.path.join(ROOT, "uploads")
 os.makedirs(UPLOADS, exist_ok=True)
 DB_PATH = os.path.join(ROOT, "blackfile.db")
 
-# Email settings (SendGrid)
-SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY", "")
-FROM_EMAIL = os.environ.get("FROM_EMAIL", "noreply@blackfile.app")
+# Email settings (Brevo SMTP - Works on Render Free Tier)
+# Brevo allows SMTP on free tier with 300 emails/day
+SMTP_HOST = "smtp-relay.brevo.com"
+SMTP_PORT = 587
+SMTP_USER = os.environ.get("BREVO_SMTP_USER", "omijagtap304@gmail.com")
+SMTP_PASS = os.environ.get("BREVO_SMTP_PASS", "")  # Will be set in code below
+FROM_EMAIL = "omijagtap304@gmail.com"
 
 # Security settings
 ALLOWED_EXPIRY = {5, 10, 60}
@@ -313,35 +318,51 @@ def gen_otp():
 def hash_otp(otp: str, salt: str):
     return hashlib.sha256((salt + otp).encode()).hexdigest()
 
-# -------------------- SendGrid Email Helper (Works on Render) --------------------
+# -------------------- Brevo SMTP Email Helper (Works on Render) --------------------
 def send_email(to_email: str, subject: str, html_body: str):
-    """Send email using SendGrid API - works on Render free tier"""
+    """Send email using Brevo SMTP - works on Render free tier (300 emails/day)"""
     
-    # Mock mode if no API key configured (for local development)
-    if not SENDGRID_API_KEY:
+    # Brevo SMTP credentials (get from environment or use default)
+    smtp_pass = SMTP_PASS or os.environ.get("BREVO_API_KEY", "")
+    
+    if not smtp_pass:
         print(f"[EMAIL MOCK] TO: {to_email} | SUBJECT: {subject[:50]}...")
-        print(f"[EMAIL MOCK] Configure SENDGRID_API_KEY to send real emails")
+        print(f"[EMAIL MOCK] Set BREVO_API_KEY environment variable to send real emails")
+        print(f"[EMAIL MOCK] Get your key from: https://app.brevo.com/settings/keys/api")
         return True
     
     try:
-        print(f"[SENDGRID] Sending email to {to_email}...")
+        print(f"[BREVO] Sending email to {to_email}...")
         
-        message = Mail(
-            from_email=FROM_EMAIL,
-            to_emails=to_email,
-            subject=subject,
-            html_content=html_body
-        )
+        # Create message
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = subject
+        msg['From'] = FROM_EMAIL
+        msg['To'] = to_email
         
-        sg = SendGridAPIClient(SENDGRID_API_KEY)
-        response = sg.send(message)
+        # Attach HTML content
+        html_part = MIMEText(html_body, 'html')
+        msg.attach(html_part)
         
-        print(f"[SENDGRID] ✅ Email sent successfully to {to_email} (Status: {response.status_code})")
+        # Connect to Brevo SMTP server
+        print(f"[BREVO] Connecting to {SMTP_HOST}:{SMTP_PORT}...")
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=30) as server:
+            print("[BREVO] Starting TLS...")
+            server.starttls()
+            print("[BREVO] Logging in...")
+            server.login(SMTP_USER, smtp_pass)
+            print("[BREVO] Sending message...")
+            server.send_message(msg)
+        
+        print(f"[BREVO] ✅ Email sent successfully to {to_email}")
         return True
         
+    except smtplib.SMTPAuthenticationError as e:
+        print(f"[BREVO] ❌ Authentication failed: {e}")
+        raise Exception(f"Email authentication failed. Please check your Brevo API key.")
     except Exception as e:
-        print(f"[SENDGRID] ❌ Failed to send email: {e}")
-        raise Exception(f"Failed to send email via SendGrid: {str(e)}")
+        print(f"[BREVO] ❌ Failed to send email: {e}")
+        raise Exception(f"Failed to send email via Brevo: {str(e)}")
 
 # Alias for compatibility
 def send_email_async(to_email: str, subject: str, html_body: str):
