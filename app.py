@@ -7,9 +7,8 @@ import hashlib
 import base64
 import datetime
 import hmac
-import smtplib
-import threading
-from email.mime.text import MIMEText
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 from io import BytesIO
 
 from flask import (
@@ -34,12 +33,9 @@ UPLOADS = os.path.join(ROOT, "uploads")
 os.makedirs(UPLOADS, exist_ok=True)
 DB_PATH = os.path.join(ROOT, "blackfile.db")
 
-# Email settings
-SMTP_HOST = os.environ.get("SMTP_HOST", "")
-SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
-SMTP_USER = os.environ.get("SMTP_USER", "")
-SMTP_PASS = os.environ.get("SMTP_PASS", "")
-FROM_EMAIL = os.environ.get("FROM_EMAIL", SMTP_USER or "no-reply@example.com")
+# Email settings (SendGrid)
+SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY", "")
+FROM_EMAIL = os.environ.get("FROM_EMAIL", "noreply@blackfile.app")
 
 # Security settings
 ALLOWED_EXPIRY = {5, 10, 60}
@@ -317,67 +313,37 @@ def gen_otp():
 def hash_otp(otp: str, salt: str):
     return hashlib.sha256((salt + otp).encode()).hexdigest()
 
-# -------------------- Synchronous Email Helper (Fixed for Render) --------------------
+# -------------------- SendGrid Email Helper (Works on Render) --------------------
 def send_email(to_email: str, subject: str, html_body: str):
-    """Send email synchronously with automatic port fallback for Render compatibility"""
-    if not (SMTP_HOST and SMTP_USER and SMTP_PASS):
+    """Send email using SendGrid API - works on Render free tier"""
+    
+    # Mock mode if no API key configured (for local development)
+    if not SENDGRID_API_KEY:
         print(f"[EMAIL MOCK] TO: {to_email} | SUBJECT: {subject[:50]}...")
+        print(f"[EMAIL MOCK] Configure SENDGRID_API_KEY to send real emails")
         return True
-
-    msg = MIMEText(html_body, "html")
-    msg["Subject"] = subject
-    msg["From"] = FROM_EMAIL
-    msg["To"] = to_email
-
-    # Try port 465 (SSL) first - works better on Render free tier
-    # Then fallback to port 587 (TLS) if 465 fails
-    ports_to_try = [
-        (465, "SSL", lambda: smtplib.SMTP_SSL(SMTP_HOST, 465, timeout=30)),
-        (587, "TLS", lambda: smtplib.SMTP(SMTP_HOST, 587, timeout=30))
-    ]
     
-    last_error = None
-    for port, mode, smtp_factory in ports_to_try:
-        try:
-            print(f"[EMAIL] Attempting {mode} connection to {SMTP_HOST}:{port}...")
-            
-            if mode == "SSL":
-                with smtp_factory() as s:
-                    print(f"[EMAIL] Connected via SSL (port {port})")
-                    s.login(SMTP_USER, SMTP_PASS)
-                    s.send_message(msg)
-                    print(f"[EMAIL] ✅ Email sent successfully to {to_email} via port {port}")
-                    return True
-            else:  # TLS
-                with smtp_factory() as s:
-                    print(f"[EMAIL] Connected, starting TLS (port {port})...")
-                    s.starttls()
-                    s.login(SMTP_USER, SMTP_PASS)
-                    s.send_message(msg)
-                    print(f"[EMAIL] ✅ Email sent successfully to {to_email} via port {port}")
-                    return True
-                    
-        except Exception as e:
-            last_error = e
-            print(f"[EMAIL] ⚠️ Port {port} ({mode}) failed: {str(e)}")
-            if port == 465:
-                print(f"[EMAIL] Trying fallback to port 587...")
-            continue
-    
-    # If all ports failed, provide user-friendly error message
-    print(f"[EMAIL] ❌ All connection attempts failed. Last error: {last_error}")
-    
-    # Check if it's a network unreachable error (common on Render free tier)
-    if "Network is unreachable" in str(last_error) or "Errno 101" in str(last_error):
-        raise Exception(
-            "⚠️ SMTP is blocked on this hosting platform. "
-            "Please contact support or use a different email service (SendGrid, Mailgun, etc.). "
-            "Error: Network unreachable - Ports 465 and 587 are blocked."
+    try:
+        print(f"[SENDGRID] Sending email to {to_email}...")
+        
+        message = Mail(
+            from_email=FROM_EMAIL,
+            to_emails=to_email,
+            subject=subject,
+            html_content=html_body
         )
-    else:
-        raise last_error
+        
+        sg = SendGridAPIClient(SENDGRID_API_KEY)
+        response = sg.send(message)
+        
+        print(f"[SENDGRID] ✅ Email sent successfully to {to_email} (Status: {response.status_code})")
+        return True
+        
+    except Exception as e:
+        print(f"[SENDGRID] ❌ Failed to send email: {e}")
+        raise Exception(f"Failed to send email via SendGrid: {str(e)}")
 
-# Alias for compatibility if needed
+# Alias for compatibility
 def send_email_async(to_email: str, subject: str, html_body: str):
     return send_email(to_email, subject, html_body)
 
