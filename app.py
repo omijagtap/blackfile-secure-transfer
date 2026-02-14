@@ -7,9 +7,8 @@ import hashlib
 import base64
 import datetime
 import hmac
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 from io import BytesIO
 
 from flask import (
@@ -34,12 +33,10 @@ UPLOADS = os.path.join(ROOT, "uploads")
 os.makedirs(UPLOADS, exist_ok=True)
 DB_PATH = os.path.join(ROOT, "blackfile.db")
 
-# Email settings (Gmail SMTP - Works on Render Free Tier)
-SMTP_HOST = "smtp.gmail.com"
-SMTP_PORT = 587
-SMTP_USER = os.environ.get("GMAIL_USER", "omijagtap304@gmail.com")
-SMTP_PASS = os.environ.get("GMAIL_APP_PASSWORD", "")
-FROM_EMAIL = "omijagtap304@gmail.com"
+# Email settings (SendGrid API - Works on Render Free Tier)
+# Use the API instead of SMTP to bypass port blocking
+SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY", "")
+FROM_EMAIL = os.environ.get("FROM_EMAIL", "omijagtap304@gmail.com")
 
 # Security settings
 ALLOWED_EXPIRY = {5, 10, 60}
@@ -317,48 +314,38 @@ def gen_otp():
 def hash_otp(otp: str, salt: str):
     return hashlib.sha256((salt + otp).encode()).hexdigest()
 
-# -------------------- Gmail SMTP Email Helper (Works on Render) --------------------
+# -------------------- SendGrid API Email Helper (Works on Render) --------------------
 def send_email(to_email: str, subject: str, html_body: str):
-    """Send email using Gmail SMTP - works on Render free tier"""
+    """Send email using SendGrid API - works on Render without port blocking"""
     
-    # Check if credentials are configured
-    if not SMTP_PASS:
+    if not SENDGRID_API_KEY:
         print(f"[EMAIL MOCK] TO: {to_email} | SUBJECT: {subject[:50]}...")
-        print(f"[EMAIL MOCK] Gmail App Password not configured")
+        print(f"[EMAIL MOCK] Configure SENDGRID_API_KEY environment variable to send real emails")
         return True
     
     try:
-        print(f"[GMAIL] Sending email to {to_email}...")
+        print(f"[SENDGRID] Sending email to {to_email}...")
         
-        # Create message
-        msg = MIMEMultipart('alternative')
-        msg['Subject'] = subject
-        msg['From'] = FROM_EMAIL
-        msg['To'] = to_email
+        message = Mail(
+            from_email=FROM_EMAIL,
+            to_emails=to_email,
+            subject=subject,
+            html_content=html_body
+        )
         
-        # Attach HTML content
-        html_part = MIMEText(html_body, 'html')
-        msg.attach(html_part)
+        sg = SendGridAPIClient(SENDGRID_API_KEY)
+        response = sg.send(message)
         
-        # Connect to Gmail SMTP server
-        print(f"[GMAIL] Connecting to {SMTP_HOST}:{SMTP_PORT}...")
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=30) as server:
-            print("[GMAIL] Starting TLS...")
-            server.starttls()
-            print("[GMAIL] Logging in...")
-            server.login(SMTP_USER, SMTP_PASS)
-            print("[GMAIL] Sending message...")
-            server.send_message(msg)
-        
-        print(f"[GMAIL] ✅ Email sent successfully to {to_email}")
-        return True
-        
-    except smtplib.SMTPAuthenticationError as e:
-        print(f"[GMAIL] ❌ Authentication failed: {e}")
-        raise Exception(f"Email authentication failed. Please check Gmail App Password.")
+        if response.status_code < 300:
+            print(f"[SENDGRID] ✅ Email sent successfully to {to_email}")
+            return True
+        else:
+            print(f"[SENDGRID] ❌ API returned error: {response.status_code}")
+            raise Exception(f"SendGrid API error: {response.status_code}")
+            
     except Exception as e:
-        print(f"[GMAIL] ❌ Failed to send email: {e}")
-        raise Exception(f"Failed to send email via Gmail: {str(e)}")
+        print(f"[SENDGRID] ❌ Failed to send email: {e}")
+        raise Exception(f"Failed to send email via SendGrid: {str(e)}")
 
 # Alias for compatibility
 def send_email_async(to_email: str, subject: str, html_body: str):

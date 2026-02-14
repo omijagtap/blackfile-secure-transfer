@@ -1,18 +1,42 @@
-# 🔒 BlackFile - Secure Document Sharing
+# 🔒 BlackFile - Secure Document Sharing (Streamlit Version)
 
 **AI-Powered Temporary File Transfer with End-to-End Encryption**
 
-[![Live Demo](https://img.shields.io/badge/Live-Demo-success)](https://blackfile-app.onrender.com)
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io/)
 [![Python](https://img.shields.io/badge/Python-3.8+-blue)](https://www.python.org/)
-[![Flask](https://img.shields.io/badge/Flask-2.0+-green)](https://flask.palletsprojects.com/)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 ---
 
-## 🚀 Live Demo
+## 🚀 Live on Streamlit Cloud
 
-**Website**: [https://blackfile-app.onrender.com](https://blackfile-app.onrender.com)
+**Follow these steps to host your own version!**
 
+### Step 1: Push to GitHub
+I have already added `streamlit_app.py` and updated `requirements.txt` in your repository.
+
+### Step 2: Connect to Streamlit Cloud
+1. Go to [share.streamlit.io](https://share.streamlit.io/)
+2. Sign in with GitHub
+3. Click **"Create app"**
+4. Select your repository: `omijagtap/blackfile-secure-transfer`
+5. Main file path: `streamlit_app.py`
+6. Click **"Deploy!"**
+
+### Step 3: Add Secrets (CRITICAL for Email)
+1. In your Streamlit Cloud dashboard, click your app
+2. Go to **Settings** → **Secrets**
+3. Paste the following (replace with your real keys):
+
+```toml
+SENDGRID_API_KEY = "your-api-key-here"
+FROM_EMAIL = "omijagtap304@gmail.com"
+APP_URL = "https://your-app-url.streamlit.app"
+```
+
+4. Click **Save**
+
+---
 Try it now! Upload a file securely and experience AI-powered malware detection.
 
 ---
